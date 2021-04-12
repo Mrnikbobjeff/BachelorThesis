@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BPTest.Views.DevicesPage"
+             xmlns:vm="clr-namespace:BPTest.ViewModels"
+             xmlns:converters="clr-namespace:BPTest.Views.Converters"
+             Title="{Binding Title}">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NotAnyCountConverter x:Key="countToAnyConverter" />
+            <converters:AnyCountConverter x:Key="AnyConverter" />
+            <converters:BooleanInverseConverter x:Key="InverseConverter" />
+            <converters:DeviceTypeIdToImageSourceConverter x:Key="deviceIdConverter" />
+            <Color x:Key="Accent">#96d1ff</Color>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <ContentPage.ToolbarItems>
+        <ToolbarItem
+                 IconImageSource="refresh.png"
+                 Command="{Binding RefreshUnpairedDevicesCommand}"
+                 Order="Primary"
+                 Priority="0" />
+    </ContentPage.ToolbarItems>
+    <StackLayout VerticalOptions="FillAndExpand">
+        <Button Text="Test Unpaired Devices" BackgroundColor="DarkGray" Command="{Binding TestUnpairedDevicesCommand}"/>
+        <Label IsVisible="{Binding Devices.Count, Converter={StaticResource countToAnyConverter}}" Text="No devices paired." HorizontalOptions="Center" VerticalOptions="Center"/>
+        <CollectionView ItemsSource="{Binding Devices}" IsVisible="{Binding ConnectedDevices.Count, Converter={StaticResource AnyConverter}}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer NumberOfTapsRequired="1" Command="{x:Static vm:DevicesViewModel.DeviceTappedCommand}" CommandParameter="{Binding .}"/>
+                        </Grid.GestureRecognizers>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.RowSpan="3" Source="{Binding TypeId, Converter={StaticResource deviceIdConverter}}" />
+                        <Label Grid.Column="1" Text="{Binding Name}" />
+                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Description}" />
+                        <Label Grid.Column="1" Grid.Row="2" Text="{Binding PairingStatus}" />
+                        <Button Grid.Column="2" Grid.RowSpan="3" Command="{Binding AssignDeviceCommand}" IsVisible="{Binding IsDeviceConnected}" />
+                        <Label Grid.Column="2" Grid.RowSpan="3" Text="{Binding ConnectionState}" IsVisible="{Binding IsDeviceConnected, Converter={StaticResource InverseConverter}}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+
+</ContentPage>

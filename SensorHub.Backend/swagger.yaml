@@ -1,0 +1,3876 @@
+---
+openapi: 3.0.0
+info:
+  title: SensorHubBackend
+  version: 1.1.0
+  description: |-
+    # Introduction
+    This Api is used to create manipulate and manage sensor data recordings related to medical studies.
+
+    # Overview
+    Things that the developers should know about
+
+    # Authentication
+    You have to authenticate for all routes except /register with a JWT via Bearer Auth. You receive your token at /login
+
+    # Error Codes
+    What errors and status codes can a user expect?
+
+    # Rate limit
+    Is there a limit to the number of requests an user can send?
+  contact: {}
+servers:
+- url: https://sensorhub-api.dhc-lab.hpi.de
+  description: PRODUCTION
+- url: https://virtserver.swaggerhub.com/SensorHub/SensorHub/1.0.0
+  description: AUTOMOCK
+- url: http://vm-healthy2.dhclab.i.hpi.de:8080
+  description: STAGING
+- url: http://localhost:8080
+  description: LOCAL
+paths:
+  /login:
+    summary: Authenticate a user
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+            examples:
+              POST Login:
+                value:
+                  email: max.mustermann@android-studio.com
+                  password: S3CretPassw0R1D!
+                  client: app
+        required: true
+      tags:
+      - signup
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                POST Login:
+                  value:
+                    refreshToken:
+                      refreshToken: 3814c211-0797-4a31-9ca9-5215bc9ab701
+                      userId: 1
+                      clientId: app
+                      issuedAt: 2021-02-22T12:46:11.418994911Z
+                    token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImF1ZCI6InNlbnNvcmh1Yi11c2VycyIsImZpcnN0TmFtZSI6Ik1heCIsImxhc3ROYW1lIjoiTXVzdGVybWFubiIsImlzcyI6Imh0dHBzOi8vdm0taGVhbHRoeS5kaGNsYWIuaS5ocGkuZGUvIiwiaWQiOjEsImV4cCI6MTYxNDAzMzk3MSwiZW1haWwiOiJtYXgubXVzdGVybWFubkBhbmRyb2lkLXN0dWRpby5jb20ifQ.mipyDUjsVu_oWemy3N-5j4IrSP-_cYfGfYO6CMXou7A
+          description: OK
+        "404":
+          $ref: '#/components/responses/NotFound'
+      operationId: login
+      summary: Log-In as existing user
+  /login/refresh:
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+            examples:
+              POST Login refresh:
+                value:
+                  refreshToken: 3814c211-0797-4a31-9ca9-5215bc9ab701
+                  userId: 1
+                  clientId: app
+                  issuedAt: 2021-02-22T12:46:11.418994911Z
+      tags:
+      - signup
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+                properties:
+                  token:
+                    type: string
+                    example: YOUR_NEW_ACCESS_TOKEN
+              examples:
+                POST Login Refresh:
+                  value:
+                    token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImF1ZCI6InNlbnNvcmh1Yi11c2VycyIsImZpcnN0TmFtZSI6Ik1heCIsImxhc3ROYW1lIjoiTXVzdGVybWFubiIsImlzcyI6Imh0dHBzOi8vdm0taGVhbHRoeS5kaGNsYWIuaS5ocGkuZGUvIiwiaWQiOjEsImV4cCI6MTYxNDA0NDE2MSwiZW1haWwiOiJtYXgubXVzdGVybWFubkBhbmRyb2lkLXN0dWRpby5jb20ifQ.pDg1YpmzEMSYRQlWtW2OLwkdN6_iB0EJRlXSt82urwM
+          description: OK
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "401":
+          description: Your refresh token is invalid
+      operationId: refreshToken
+      summary: Get a new access token using your refresh token
+  /login/revoke:
+    summary: Revoke an access tokena
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+            examples:
+              POST Login Revoke:
+                value:
+                  refreshToken: 3814c211-0797-4a31-9ca9-5215bc9ab701
+                  userId: 1
+                  clientId: app
+                  issuedAt: 2021-02-22T12:46:11.418994911Z
+        required: true
+      tags:
+      - signup
+      responses:
+        "200":
+          description: User was deleted
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+      operationId: revokeRefreshToken
+      summary: Revoke an access token
+  /users:
+    get:
+      tags:
+      - users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: OK
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: getusers
+      summary: Get users
+      description: |
+        Regarding your user role you can get
+        * `ADMIN` – list of all users
+        * `SCIENTIST` – list of all users in studies you manage
+        * `PATIENT` – your user
+    post:
+      requestBody:
+        description: The email has to be unique.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUser'
+            example:
+              email: max.mustermann@android-studio.com
+              firstName: Max
+              lastName: Mustermann
+              password: password123
+              userRole: PATIENT
+        required: true
+      tags:
+      - users
+      parameters:
+      - name: X-Registration-Auth
+        schema:
+          type: string
+        in: header
+        required: true
+      responses:
+        "201":
+          description: User was created
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          content:
+            application/json:
+              example:
+                error: You are not allowed to create a user with this userRole
+          description: You are not allowed to create a user with this `userRole` (see
+            above).
+        "404":
+          $ref: '#/components/responses/EmailExisting'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: createuser
+      summary: Create a new user
+      description: |
+        Regarding your user role you can
+        * `ADMIN` – create all sorts of users
+        * `SCIENTIST` & `PATIENT` – create `PATIENT`s
+  /users/{userId}:
+    get:
+      tags:
+      - users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                GET single user:
+                  value:
+                    id: 1
+                    email: max.mustermann@android-studio.com
+                    firstName: Max
+                    lastName: Mustermann
+                    password: password hidden
+                    userRole: ADMIN
+                    activeStudyId: 5
+                    failedLoginAttempts: 0
+          description: OK
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      operationId: getuser
+      summary: Get one specific user
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+            examples:
+              PUT user:
+                value:
+                  id: 1
+                  email: max.mustermann@android-studio.com
+                  firstName: Max
+                  lastName: Mustermann
+                  password: password hidden
+                  userRole: ADMIN
+                  activeStudyId: 5
+                  failedLoginAttempts: 0
+        required: true
+      tags:
+      - users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                PUT user result:
+                  value:
+                    id: 1
+                    email: max.mustermann@android-studio.com
+                    firstName: Max
+                    lastName: Mustermann
+                    password: password hidden
+                    userRole: ADMIN
+                    activeStudyId: 5
+                    failedLoginAttempts: 0
+          description: Successfully updated requested user
+      security:
+      - httpBearer: []
+      operationId: putSingleUser
+      summary: Replace a single user
+    delete:
+      tags:
+      - users
+      responses:
+        "200":
+          description: OK
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          content:
+            application/json:
+              example:
+                error: You cannot delete the last administrator of the system
+          description: You cannot delete the last administrator of the system
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: deleteuser
+      summary: Delete one specific user
+    patch:
+      requestBody:
+        description: Update for example the first name of the user with `userId` to
+          Joe or it's `activeStudyId`
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchUser'
+            examples:
+              Change first name:
+                value:
+                  firstName: Joe
+              Change active study:
+                value:
+                  activeStudyId: 2
+        required: true
+      tags:
+      - users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchUser'
+              examples:
+                Change first name:
+                  value:
+                    email: max.mustermann@android-studio.com
+                    firstName: Joe
+                    lastName: Mustermann
+                    userRole: PATIENT
+                    activeStudyId: 1
+                Change active study:
+                  value:
+                    email: max.mustermann@android-studio.com
+                    firstName: Max
+                    lastName: Mustermann
+                    userRole: PATIENT
+                    activeStudyId: 2
+          description: OK
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: updateuser
+      summary: Update some fields of a user
+    parameters:
+    - name: userId
+      description: This resource id represents an individual user in the system. Each
+        user is identified by a numeric `userId`. Non-admins can only access their
+        own or their patients' data.
+      schema:
+        format: int64
+        type: integer
+        example: 1
+      in: path
+      required: true
+  /studies:
+    summary: Manage studies
+    get:
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Study'
+              examples:
+                GET studies:
+                  value:
+                  - id: 44
+                    name: some text
+                    description: some text
+                  - id: 34
+                    name: some text
+                    description: some text
+          description: Successfully returned list of studies
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: getstudies
+      summary: Get studies
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostStudy'
+        required: true
+      tags:
+      - studies
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/studyIdMap'
+              examples:
+                POST study:
+                  value:
+                    studyId: 5
+          description: Successfully created study
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: createstudy
+      summary: Create a new study
+  /studies/{studyId}:
+    summary: Manage a single study
+    get:
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Study'
+              examples:
+                GET single study:
+                  value:
+                    id: 10
+                    name: some text
+                    description: some text
+          description: ""
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: getstudy
+      summary: Get one specific study
+    put:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Study'
+            examples:
+              PUT single study:
+                value:
+                  id: 48
+                  name: some text
+                  description: some text
+        required: true
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Study'
+              examples:
+                replaced study:
+                  value:
+                    id: 75
+                    name: some text
+                    description: some text
+          description: Successfully replaces study
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: putstudy
+      summary: Replace one specific study
+    delete:
+      tags:
+      - studies
+      responses:
+        "200":
+          description: Successfully deleted study
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: deletestudy
+      summary: Delete one specific study
+    patch:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchStudy'
+            examples:
+              PATCH single study:
+                value:
+                  name: some text
+                  description: some text
+        required: true
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Study'
+              examples:
+                patched study:
+                  value:
+                    id: 49
+                    name: some text
+                    description: some text
+          description: Successfully updated study
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: updatestudy
+      summary: Update some field of a study
+    parameters:
+    - name: studyId
+      description: This resource id represents an individual study in the system.
+        Each study is identified by a numeric `studyId`. Non-admins can only access
+        their own or their patients' data.
+      schema:
+        type: integer
+      in: path
+      required: true
+  /devices:
+    summary: Manage existing devices
+    get:
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+              examples:
+                GET Devices:
+                  value:
+                  - id: 1
+                    name: Internal
+                    studyId: 2
+                    deviceType:
+                      id: 1
+                      name: Smartphone Sensors
+                      module: internal
+                  - id: 2
+                    name: Internal_bluetooth
+                    studyId: 2
+                    deviceType:
+                      id: 13
+                      name: Bluetooth Low Energy scanner
+                      module: bluetooth
+                  - id: 3
+                    name: GSR
+                    studyId: 2
+                    deviceType:
+                      id: 10
+                      name: Shimmer GSR+
+                      module: shimmer
+          description: ""
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: getdevices
+      summary: Get list of all existing devices
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDevice'
+            examples:
+              POST Device:
+                value:
+                  name: Shimmer
+                  type: Shimmer GSR+
+                  studyId: 15
+        required: true
+      tags:
+      - devices
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                POST Device successfull:
+                  value:
+                    id: 1
+                    name: Internal
+                    studyId: 2
+                    deviceType:
+                      id: 1
+                      name: Smartphone Sensors
+                      module: internal
+          description: Successfully created device
+        "500":
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                POST Devices Internal Server Error:
+                  value: '"Something went wrong when trying to save the study device."'
+          description: Something went wrong
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: postdevice
+      summary: Create a new device
+  /devices/{id}:
+    summary: Manage specific device
+    get:
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                GET Specific Device:
+                  value:
+                    id: 1
+                    name: Internal
+                    studyId: 2
+                    deviceType:
+                      id: 1
+                      name: Smartphone Sensors
+                      module: internal
+          description: ""
+        "404":
+          $ref: '#/components/responses/NotFound'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: getdevice
+      summary: Get one specific device
+    put:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+            examples:
+              PUT Specific Device:
+                value:
+                  id: 1
+                  name: Internal
+                  studyId: 2
+                  deviceType:
+                    id: 1
+                    name: Smartphone Sensors
+                    module: internal
+        required: true
+      tags:
+      - devices
+      responses:
+        "200":
+          description: ""
+        "404":
+          $ref: '#/components/responses/NotFound'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: putdevice
+      summary: Replace one specific device
+    delete:
+      tags:
+      - devices
+      responses:
+        "200":
+          description: ""
+        "404":
+          $ref: '#/components/responses/NotFound'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: deletedevice
+      summary: Delete one specific device
+    patch:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchDevice'
+            examples:
+              PATCH Specific Device:
+                value:
+                  name: Shimmer
+                  studyId: 15
+        required: true
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                PATCH Specific Device successfull:
+                  value:
+                    id: 1
+                    name: Internal
+                    studyId: 2
+                    deviceType:
+                      id: 1
+                      name: Smartphone Sensors
+                      module: internal
+          description: ""
+        "404":
+          $ref: '#/components/responses/NotFound'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: patchdevicename
+      summary: Update some fields of a device
+    parameters:
+    - name: id
+      description: Device ID
+      schema:
+        type: integer
+      in: path
+      required: true
+  /studies/{studyId}/tags:
+    summary: Manage tags of study
+    get:
+      tags:
+      - tags
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+              examples:
+                GET Tags of study:
+                  value:
+                  - name: some text
+                    isSingleEvent: true
+                  - name: some text
+                    isSingleEvent: true
+          description: ""
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: gettags
+      summary: Get tags of study
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+            examples:
+              POST Tag of study:
+                value:
+                  name: some text
+                  isSingleEvent: true
+        required: true
+      tags:
+      - tags
+      responses:
+        "201":
+          description: Successfully created tag
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: createtag
+      summary: Create a new tag
+    parameters:
+    - name: studyId
+      description: This resource id represents an individual study in the system.
+        Each study is identified by a numeric `studyId`. Non-admins can only access
+        their own or their patients' data.
+      schema:
+        type: integer
+      in: path
+      required: true
+  /studies/{studyId}/tags/{tagName}:
+    summary: Manage a specific tag
+    get:
+      tags:
+      - tags
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+              examples:
+                GET Tags of study:
+                  value:
+                    name: some text
+                    isSingleEvent: true
+          description: ""
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "404":
+          $ref: '#/components/responses/NotFound'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: gettag
+      summary: Get one specific tag
+    put:
+      requestBody:
+        description: Replace all values (`name` and `isSingleEvent`) of a specific
+          tag with new values.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+            examples:
+              PUT Tag:
+                value:
+                  name: some text
+                  isSingleEvent: true
+        required: true
+      tags:
+      - tags
+      responses:
+        "200":
+          description: Successfully updated tag
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: puttag
+      summary: Replace one specific tag
+    delete:
+      tags:
+      - tags
+      responses:
+        "200":
+          description: Successfully deleted tag
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: deletetag
+      summary: Delete one specific tag
+    patch:
+      requestBody:
+        description: Update certain values (`name` and/or `isSingleEvent`) with new
+          values.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchTag'
+            examples:
+              PATCH name of tag:
+                value:
+                  name: some text
+        required: true
+      tags:
+      - tags
+      responses:
+        "200":
+          description: Successfully updated tag
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: updatetag
+      summary: Update some field of a tag
+    parameters:
+    - name: studyId
+      description: This resource id represents an individual study in the system.
+        Each study is identified by a numeric `studyId`. Non-admins can only access
+        their own or their patients' data.
+      schema:
+        type: integer
+      in: path
+      required: true
+    - name: tagName
+      description: This resource represents an individual tag for a specific study.
+        Tags are uniquely identifiable through their `name` attribute inside one study.
+      schema:
+        format: string
+        type: string
+      in: path
+      required: true
+  /sensordata:
+    summary: Manage sensordata
+    get:
+      tags:
+      - sensordata
+      parameters:
+      - name: studyId
+        description: Filter every SensorData recorded for specific study. Non-admins
+          can only access studies they are assigned to.
+        schema:
+          minimum: 1
+          type: integer
+          example: 1
+        in: query
+        required: false
+      - name: userId
+        description: Filter every SensorData recorded for specific user. Non-admins
+          can only access their own or their patients' data.
+        schema:
+          minimum: 1
+          type: integer
+          example: 1
+        in: query
+        required: false
+      - name: deviceId
+        description: Filter every SensorData recorded for specific device. Non-admins
+          can only access their own or their patients' data.
+        schema:
+          minimum: 1
+          type: integer
+          example: 1
+        in: query
+        required: false
+      - style: pipeDelimited
+        explode: true
+        name: types
+        description: "Filter every SensorData of specific type. If multiple types\
+          \ shall be requested, seperate them with commas."
+        schema:
+          $ref: '#/components/schemas/SensorDataType'
+        in: query
+        required: false
+      - name: startTime
+        description: Filter every SensorData recorded after specific time (ns UTC).
+        schema:
+          type: integer
+          example: 1591019142000
+        in: query
+        required: false
+      - name: endTime
+        description: Filter every SensorData recorded before specific time (ns UTC).
+        schema:
+          type: integer
+          example: 1591019144000
+        in: query
+        required: false
+      - name: recordingIds
+        description: IDs of recordings
+        schema:
+          type: array
+          items:
+            type: integer
+        in: query
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SensorDataArray'
+              examples:
+                example-multiple:
+                  $ref: '#/components/examples/SensorDataArray'
+                example-single:
+                  $ref: '#/components/examples/SensorData'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/SensorDataArray'
+              examples:
+                csv-example:
+                  $ref: '#/components/examples/SensorDataArrayCSV'
+            x-binary/parquet:
+              schema:
+                $ref: '#/components/schemas/SensorDataArray'
+              examples:
+                parquet-example:
+                  $ref: '#/components/examples/SensorDataArrayParquet'
+          description: ""
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: exportsensordata
+      summary: Download sensor data
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostSensorData'
+            examples:
+              example-multiple:
+                $ref: '#/components/examples/SensorDataArray'
+              example-single:
+                $ref: '#/components/examples/SensorData'
+        required: true
+      tags:
+      - sensordata
+      responses:
+        "201":
+          description: Successfully created sensordata
+        "409":
+          description: User is not assigned to a study
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: uploadsensordata
+      summary: Upload sensor data
+    delete:
+      tags:
+      - sensordata
+      parameters:
+      - name: studyId
+        description: Delete every SensorData recorded for specific study. Non-admins
+          can only delete studies they are assigned to.
+        schema:
+          minimum: 1
+          type: integer
+          example: 1
+        in: query
+        required: false
+      - name: userId
+        description: Delete every SensorData recorded for specific user. Non-admins
+          can only delete their own or their patients' data.
+        schema:
+          minimum: 1
+          type: integer
+          example: 1
+        in: query
+        required: false
+      - name: deviceId
+        description: Delete every SensorData recorded for specific device. Non-admins
+          can only delete their own or their patients' data.
+        schema:
+          minimum: 1
+          type: integer
+          example: 1
+        in: query
+        required: false
+      - style: pipeDelimited
+        explode: true
+        name: types
+        description: "Delete every SensorData of specific type. If multiple types\
+          \ shall be deleted, seperate them with commas."
+        schema:
+          $ref: '#/components/schemas/SensorDataType'
+        in: query
+        required: false
+      - name: startTime
+        description: Delete every SensorData that has been recorded after startTime
+          (unix timestamp)
+        schema:
+          type: integer
+        in: query
+      - name: endTime
+        description: Delete every SensorData recorded until endTime (unix timestamp)
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          description: Successfully deleted SensorData
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: deletesensordata
+      summary: Delete sensor data
+  /tagrecordings:
+    get:
+      tags:
+      - tagrecordings
+      parameters:
+      - name: userId
+        description: Get tagrecordings of a single user
+        schema:
+          type: integer
+        in: query
+      - name: studyId
+        description: Get tagrecordings of a single study
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagRecordingArray'
+              examples:
+                example-multiple:
+                  $ref: '#/components/examples/TagRecordingArray'
+                example-single-event:
+                  $ref: '#/components/examples/TagRecordingSingleEvent'
+                example-activity:
+                  $ref: '#/components/examples/TagRecordingActivity'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/TagRecordingArray'
+              examples:
+                csv-example:
+                  $ref: '#/components/examples/TagRecordingArrayCSV'
+          description: ""
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: ExportasJSON
+      summary: Download tag recordings
+    post:
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagRecordingArray'
+            examples:
+              example-multiple:
+                $ref: '#/components/examples/TagRecordingArray'
+              example-single-event:
+                $ref: '#/components/examples/TagRecordingSingleEvent'
+              example-activity:
+                $ref: '#/components/examples/TagRecordingActivity'
+        required: true
+      tags:
+      - tagrecordings
+      responses:
+        "201":
+          description: Successfully uploaded tagged recording
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: posttagrecordinglist
+      summary: Upload tag recordings
+  /participations:
+    summary: Manage participations of users in studies
+    get:
+      tags:
+      - participations
+      parameters:
+      - name: userId
+        description: ID specifiying a user
+        schema:
+          type: integer
+        in: query
+      - name: studyId
+        description: ID specifiying a study
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participation'
+              examples:
+                GET Participations:
+                  value:
+                  - userId: 1
+                    studyId: 1
+                  - userId: 4
+                    studyId: 2
+                  - userId: 1
+                    studyId: 2
+                  - userId: 2
+                    studyId: 2
+          description: ""
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: getparticipations
+      summary: Get participations
+    post:
+      requestBody:
+        description: Add a participation
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Participation'
+            examples:
+              POST participations:
+                value: "\n  {\n    \"userId\": 2,\n    \"studyId\": 2\n  }"
+        required: true
+      tags:
+      - participations
+      responses:
+        "201":
+          description: Successfully added participation
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: addparticipation
+      summary: Add participation
+    delete:
+      tags:
+      - participations
+      parameters:
+      - style: form
+        explode: true
+        name: studyId
+        description: Delete all participations for specific study. Non-admins can
+          only delete their own or their patients' data.
+        schema:
+          type: integer
+        in: query
+        required: false
+      - style: form
+        explode: true
+        name: userId
+        description: Delete all participations for specific user. Non-admins can only
+          delete their own or their patients' data in their owned studies.
+        schema:
+          type: integer
+        in: query
+        required: false
+      responses:
+        "200":
+          description: ""
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      deprecated: false
+      security:
+      - httpBearer: []
+      operationId: deleteparticipation
+      summary: Delete one specific participation
+  /studies/{studyId}/devices:
+    summary: Manage devices of a study
+    get:
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+              examples:
+                GET Devices of study:
+                  value:
+                  - id: 1
+                    name: Internal
+                    studyId: 2
+                    deviceType:
+                      id: 1
+                      name: Smartphone Sensors
+                      module: internal
+                  - id: 2
+                    name: Internal_bluetooth
+                    studyId: 2
+                    deviceType:
+                      id: 13
+                      name: Bluetooth Low Energy scanner
+                      module: bluetooth
+                  - id: 3
+                    name: GSR
+                    studyId: 2
+                    deviceType:
+                      id: 10
+                      name: Shimmer GSR+
+                      module: shimmer
+          description: List of devices successfull
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getDevicesOfStudy
+      summary: Get list of devices associated with study
+    parameters:
+    - name: studyId
+      description: ID of the study
+      schema:
+        type: integer
+      in: path
+      required: true
+  /studies/active/devices:
+    summary: Manage devices of active study
+    get:
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+              examples:
+                GET Devices of active study:
+                  value:
+                  - id: 1
+                    name: Internal
+                    studyId: 2
+                    deviceType:
+                      id: 1
+                      name: Smartphone Sensors
+                      module: internal
+                  - id: 2
+                    name: Internal_bluetooth
+                    studyId: 2
+                    deviceType:
+                      id: 13
+                      name: Bluetooth Low Energy scanner
+                      module: bluetooth
+                  - id: 3
+                    name: GSR
+                    studyId: 2
+                    deviceType:
+                      id: 10
+                      name: Shimmer GSR+
+                      module: shimmer
+          description: Sucessfully retrieved devices
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "404":
+          $ref: '#/components/responses/NotFound'
+      operationId: getDeviceActiveStudy
+      summary: Get list of devies in active study of requesting user
+  /questionnairebatches/active:
+    summary: Manage questionnaire batches
+    description: Manage batches that contain questionnaire data for the active study.
+    get:
+      tags:
+      - batches
+      parameters:
+      - name: studyId
+        description: Specify the study for requested batches
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Batch'
+              examples:
+                GET questionnaire batches:
+                  value:
+                  - batchId: 2
+                    questionnaires:
+                    - questionnaireId: 2
+                      type: AFFECTIVE_SLIDER
+                      options: {}
+                    - questionnaireId: 3
+                      type: LIKERT_SCALE
+                      options:
+                        option1: Not at all
+                        option2: 'Slightly '
+                        option3: Moderately
+                        option4: 'Very '
+                        option5: Extremely
+                        description: How stressed are you currently?
+                    - questionnaireId: 4
+                      type: AUDIO
+                      options:
+                        minduration: 3
+                        maxduration: 10
+                        timepicker: false
+                        description: Please record the ambient sounds of your surroundings.
+                    - questionnaireId: 5
+                      type: AUDIO
+                      options:
+                        minduration: 10
+                        maxduration: 60
+                        timepicker: false
+                        description: "Please describe a significant emotional event,\
+                          \ which happened since the last prompt."
+                    repetition: 120
+                    randomized: false
+                    name: EMA
+                    description: Label_emotion
+                  - batchId: 3
+                    questionnaires:
+                    - questionnaireId: 6
+                      type: AUDIO
+                      options:
+                        minduration: 10
+                        maxduration: 120
+                        timepicker: true
+                        description: "Please describe a significant emotional event,\
+                          \ which you experienced earlier today."
+                    - questionnaireId: 7
+                      type: AFFECTIVE_SLIDER
+                      options: {}
+                    - questionnaireId: 8
+                      type: LIKERT_SCALE
+                      options:
+                        option1: Not at all
+                        option2: 'Slightly '
+                        option3: Moderately
+                        option4: 'Very '
+                        option5: Extremely
+                        description: How stressed were you at this time?
+                    repetition: 1440
+                    randomized: false
+                    name: Daily Voice Recording
+                    description: Voice
+          description: Successfull retrieval of questionnaire batches
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+      security:
+      - httpBearer: []
+      operationId: getBatches
+      summary: Get questionnaire batches of active study
+      description: "Get all batches of the active study of the user.  \n\n- The roles\
+        \ `PATIENT` and `SCIENTIST` can only see batches of studies they participate\
+        \ in\n- The role `ADMIN` can see every batch"
+    post:
+      requestBody:
+        description: Specify batches of questionnaires of a study
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostBatch'
+            examples:
+              POST Questionnairebatches Active:
+                value:
+                - questionnaires: []
+                  repetition: 1440
+                  randomized: false
+                  description: Get activity labels for ML
+                  name: Delete recordings
+        required: true
+      tags:
+      - batches
+      responses:
+        "201":
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  type: integer
+              examples:
+                POST Questionnairebatches Active Response:
+                  value:
+                  - 1
+                  - 2
+                  - 3
+          description: Batch successfully created
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+      security:
+      - httpBearer: []
+      operationId: postQuestionnaireBatch
+      summary: Add batch of questionnaires to study
+      description: "Add a batches to the active study of the user.  \nThe role `PATIENT`\
+        \ is not allowed to use this route."
+  /questionnairebatches/active/{batchId}:
+    summary: Manage a specific questionnaire batch
+    description: |-
+      This route lets you manage the questionnaires and delete a batch.
+
+      - The role `PATIENT` is not allowed to use this route
+      - The role `SCIENTIST` is only allowed to access batches of studies it participates in
+      - The role `ADMIN` is allowed to access every batch and every stduy
+    post:
+      requestBody:
+        description: Questionnaires to add to the batch
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostQuestionnaire'
+            examples:
+              POST Specific Questionnairebatches Active:
+                value:
+                - type: AUDIO
+                  options:
+                    minduration: 30
+                    maxduration: 45
+                    timepicker: true
+                    description: Delete last x minutes for ML
+        required: true
+      tags:
+      - batches
+      responses:
+        "201":
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  type: integer
+              examples:
+                POST questionnairebatches active:
+                  value:
+                  - 1
+                  - 2
+                  - 3
+          description: Questionnaires successfully addded
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: postQuestionnaireToBatch
+      summary: Add questionnaires to the specified batch
+      description: |-
+        Add questionnaires to the batch specified by its ID.
+
+        - The role `PATIENT` is not allowed to use this route
+        - The role `SCIENTIST` is only allowed to access batches of studies it participates in
+        - The role `ADMIN` is allowed to access every batch and every stduy
+    delete:
+      tags:
+      - batches
+      responses:
+        "204":
+          description: Successfully deleted
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+      security:
+      - httpBearer: []
+      operationId: deleteQuestionnaireBatch
+      summary: Delete a specific questionnaire batch
+      description: |-
+        Delete the batch specified by its ID.
+
+        - The role `PATIENT` is not allowed to use this route
+        - The role `SCIENTIST` is only allowed to access batches of studies it participates in
+        - The role `ADMIN` is allowed to access every batch and every stduy
+    parameters:
+    - name: batchId
+      description: Referenced batchId
+      schema:
+        type: integer
+      in: path
+      required: true
+  /upload:
+    summary: Manage binary files
+    description: On this route you can up- and download files to the backend and delete
+      files.
+    get:
+      tags:
+      - filestorage
+      parameters:
+      - name: dataId
+        description: ID of the requested file
+        schema:
+          type: integer
+        in: query
+        required: true
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+          description: Requestet file is successfully returned
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: downloadBinaryFile
+      summary: Upload a binary file
+      description: |
+        Download a file and by its file ID
+
+        - The Role `PATIENT` can only download its own data
+        - The Role `SCIENTIST` can only download data of studies they particiapte in
+        - The Role `ADMIN` can download all data
+    post:
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+        required: true
+      tags:
+      - filestorage
+      responses:
+        "201":
+          content:
+            text/plain:
+              schema:
+                type: integer
+          description: File successfully uploaded
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: uploadBinaryFile
+      summary: Upload a binary file
+      description: "Download a File by its file ID.\n\n- The role `ADMIN` can download\
+        \ all data.  \n- The role `SCIENTIST` can only download data of their own\
+        \ studies.  \n- The role `PATIENT` can only download its own data.\n"
+    delete:
+      tags:
+      - filestorage
+      parameters:
+      - name: dataId
+        description: ID of the file to delete
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          description: File successfully deleted
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      operationId: deleteBinaryFile
+      summary: Delete a  specific file
+      description: "Delete some files.\n\n- The role `ADMIN` can delete all data.\
+        \  \n- The role `SCIENTIST` can only delete data of their own studies.  \n\
+        - The role `PATIENT` can not delete data.\n"
+  /questionnairebatches/active/{batchId}/{questionnaireId}:
+    summary: Manage a specific questionnaire of a batch
+    description: "Manages the questionnaire identified by its id of a batch identified\
+      \ by its id.  \n\n- The role `PATIENT` is not allowed to use this route\n- The\
+      \ role `SCIENTIST` is only allowed to access batches of studies it participates\
+      \ in\n- The role `ADMIN` is allowed to access every batch and every stduy"
+    put:
+      requestBody:
+        description: Questionnaire to update the current one
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Questionnaire'
+            examples:
+              PUT Specified Questionnaire:
+                value:
+                  questionnaireId: 7
+                  type: AFFECTIVE_SLIDER
+                  options: {}
+        required: true
+      tags:
+      - batches
+      responses:
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+        "200":
+          description: Successfully updated batch
+      security:
+      - httpBearer: []
+      operationId: putSpecificQuestionnaire
+      summary: Replace specified questionnaire
+      description: |-
+        In the batch specified by its id the questionnaire specified by its id will be replaced.
+
+        - The role `PATIENT` is not allowed to use this route
+        - The role `SCIENTIST` is only allowed to access batches of studies it participates in
+        - The role `ADMIN` is allowed to access every batch and every stduy
+    delete:
+      tags:
+      - batches
+      responses:
+        "204":
+          description: Successfully deleted batch
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      operationId: deleteSpecificQuestionnaire
+      summary: Delete specified questionnaire
+      description: "In the batch specified by its id the questionnaire specified by\
+        \ its id will be replaced.  \n\n- The role `PATIENT` is not allowed to use\
+        \ this route\n- The role `SCIENTIST` is only allowed to access batches of\
+        \ studies it participates in\n- The role `ADMIN` is allowed to access every\
+        \ batch and every stduy"
+    parameters:
+    - name: batchId
+      description: ID of the specified batch
+      schema:
+        type: integer
+      in: path
+      required: true
+    - name: questionnaireId
+      description: ID of the specified questionnaire
+      schema:
+        type: integer
+      in: path
+      required: true
+  /devices/types:
+    summary: View all availible device types
+    get:
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceType'
+              examples:
+                GET device types:
+                  value:
+                  - id: 1
+                    name: Smartphone Sensors
+                    module: internal
+                  - id: 2
+                    name: Mock Device
+                    module: mock
+                  - id: 3
+                    name: Bonsai QuantiMotion
+                    module: bonsai
+                  - id: 4
+                    name: Biovotion Everion
+                    module: biovotion
+                  - id: 5
+                    name: Polar H10
+                    module: polar
+                  - id: 6
+                    name: Polar OH1
+                    module: polar
+                  - id: 7
+                    name: GaitUp Physilog V2
+                    module: gaitup
+                  - id: 8
+                    name: Neurosky
+                    module: neurosky
+                  - id: 9
+                    name: Empatica E4
+                    module: empatica
+                  - id: 10
+                    name: Shimmer GSR+
+                    module: shimmer
+                  - id: 11
+                    name: GaitUp Physilog V1
+                    module: gaitupv1
+                  - id: 12
+                    name: Wear OS Device
+                    module: wearos
+                  - id: 13
+                    name: Bluetooth Low Energy scanner
+                    module: bluetooth
+          description: Successfully returned list of device types
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getAvailibleDeviceTypes
+      summary: Get list of all availible device types
+  /health:
+    summary: Route for health check
+    get:
+      tags:
+      - health
+      responses:
+        "200":
+          description: Healthcheck successfull
+      operationId: getHealth
+      summary: Returns ok indicating the server is running
+      description: To check if the server is running this route can be requested.
+        It returns nothing and always has status `200 OK`.
+  /devices/modules:
+    summary: View all availible device modules
+    get:
+      tags:
+      - devices
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceModule'
+              examples:
+                GET device modules:
+                  value:
+                  - name: internal
+                    description: Internal Smartphone Sensors
+                    deviceTypes:
+                    - id: 1
+                      name: Smartphone Sensors
+                      module: internal
+                  - name: mock
+                    description: Mock Device
+                    deviceTypes:
+                    - id: 2
+                      name: Mock Device
+                      module: mock
+                  - name: bonsai
+                    description: Bonsai Systems
+                    deviceTypes:
+                    - id: 3
+                      name: Bonsai QuantiMotion
+                      module: bonsai
+                  - name: biovotion
+                    description: Biovotion
+                    deviceTypes:
+                    - id: 4
+                      name: Biovotion Everion
+                      module: biovotion
+                  - name: polar
+                    description: Polar
+                    deviceTypes:
+                    - id: 5
+                      name: Polar H10
+                      module: polar
+                    - id: 6
+                      name: Polar OH1
+                      module: polar
+                  - name: gaitup
+                    description: GaitUp
+                    deviceTypes:
+                    - id: 7
+                      name: GaitUp Physilog V2
+                      module: gaitup
+                  - name: neurosky
+                    description: Neurosky
+                    deviceTypes:
+                    - id: 8
+                      name: Neurosky
+                      module: neurosky
+                  - name: empatica
+                    description: Empatica
+                    deviceTypes:
+                    - id: 9
+                      name: Empatica E4
+                      module: empatica
+                  - name: shimmer
+                    description: Shimmer
+                    deviceTypes:
+                    - id: 10
+                      name: Shimmer GSR+
+                      module: shimmer
+                  - name: gaitupv1
+                    description: GaitUp V1
+                    deviceTypes:
+                    - id: 11
+                      name: GaitUp Physilog V1
+                      module: gaitupv1
+                  - name: wearos
+                    description: WearOS Device
+                    deviceTypes:
+                    - id: 12
+                      name: Wear OS Device
+                      module: wearos
+                  - name: bluetooth
+                    description: Bluetooth Detection
+                    deviceTypes:
+                    - id: 13
+                      name: Bluetooth Low Energy scanner
+                      module: bluetooth
+          description: Successfully returned all device modules
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getAllDeviceModules
+      summary: Get list of all availible device modules
+  /participations/users:
+    summary: Manage users participating in a study
+    get:
+      tags:
+      - users
+      parameters:
+      - name: studyId
+        description: Specify study by ID
+        schema:
+          type: integer
+        in: query
+      - name: userRole
+        description: User role to filter by
+        schema:
+          enum:
+          - PATIENT
+          - SCIENTIST
+          - ADMIN
+          type: string
+        in: query
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              examples:
+                GET users of participations:
+                  value: "  {\n    \"id\": 5,\n    \"email\": \"test.tester@email.de\"\
+                    ,\n    \"firstName\": \"Test\",\n    \"lastName\": \"Tester\"\
+                    ,\n    \"password\": \"password hidden\",\n    \"userRole\": \"\
+                    SCIENTIST\",\n    \"activeStudyId\": 2,\n    \"failedLoginAttempts\"\
+                    : 0\n  },\n  {\n    \"id\": 1,\n    \"email\": \"max.mustermann@email.com\"\
+                    ,\n    \"firstName\": \"Max\",\n    \"lastName\": \"Mustermann\"\
+                    ,\n    \"password\": \"password hidden\",\n    \"userRole\": \"\
+                    ADMIN\",\n    \"activeStudyId\": 5,\n    \"failedLoginAttempts\"\
+                    : 0\n  }\n]"
+          description: Successfully retrieved users
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getParticipationUsers
+      summary: Get users participating in a study
+  /questionnaires/types:
+    summary: View all availible questionnaire types
+    get:
+      tags:
+      - questionnaires
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuestionnaireType'
+              examples:
+                GET questionnaire types:
+                  value:
+                  - UNKNOWN
+                  - AFFECTIVE_SLIDER
+                  - AUDIO
+                  - LIKERT_SCALE
+                  - FOOD
+          description: Successfully returned list of questionnaire types
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getAvailibleQuestionnaireTypes
+      summary: Get a list of all availible questionnaire types
+  /studies/{studyId}/recordings:
+    summary: Manage recordings of a specific study
+    get:
+      tags:
+      - recordings
+      parameters:
+      - examples:
+          studyId:
+            value: "1"
+        name: studyId
+        description: ID of the study recordings are requested for
+        schema:
+          type: integer
+        in: path
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recording'
+              examples:
+                GET study recordings:
+                  value:
+                  - id: 1
+                    description: ""
+                    startTime: 1613483798684
+                    endTime: 1613483801577
+                    userId: 3
+                    studyId: 2
+                  - id: 2
+                    description: ""
+                    startTime: 1613484513274
+                    endTime: 1613484514906
+                    userId: 3
+                    studyId: 2
+          description: Successfully returned list requested of recordings.
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getStudyRecordings
+      summary: Get recordings of a specific study
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostRecording'
+            examples:
+              POST study recordings:
+                value:
+                - description: ""
+                  startTime: 1613483798684
+                  endTime: 1613483801577
+                  userId: 3
+                  studyId: 2
+                - description: ""
+                  startTime: 1613484513274
+                  endTime: 1613484514906
+                  userId: 3
+                  studyId: 2
+        required: true
+      tags:
+      - recordings
+      parameters:
+      - examples:
+          studyId:
+            value: "1"
+        name: studyId
+        description: ID of the study recordings are uploaded for
+        schema:
+          type: integer
+        in: path
+        required: true
+      responses:
+        "201":
+          description: Successfully uploaded recordings
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: addStudyRecordings
+      summary: Add recordings for a specific study
+  /recordings:
+    summary: Manage all recordings you are permitted to access
+    get:
+      tags:
+      - recordings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recording'
+              examples:
+                GET recordings:
+                  value:
+                  - id: 1
+                    description: ""
+                    startTime: 1613483798684
+                    endTime: 1613483801577
+                    userId: 3
+                    studyId: 2
+                  - id: 2
+                    description: ""
+                    startTime: 1613484513274
+                    endTime: 1613484514906
+                    userId: 3
+                    studyId: 2
+            text/csv:
+              schema:
+                type: string
+              examples:
+                GET recordings csv:
+                  value: "startTime,endTime,description,userId,studyId\r\n1613483798684,1613483801577,,3,2\r\
+                    \n1613484513274,1613484514906,,3,2\r\n1613495884950,1613544168579,,4,2\r\
+                    \n1613544169249,1613544180359,,4,2\r\n1613544181024,1613544210133,,4,2\r\
+                    \n1613544219523,1613544236471,,4,2\r\n1613544237115,1613544275771,,4,2\r\
+                    \n1613544276362,1613544317947,,4,2\r\n1613544322012,1613544609160,,4,2\r\
+                    \n1613544627185,1613544722285,,4,2"
+          description: Successfully returned all recordings
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getAllRecordings
+      summary: Get all recordings you can access
+  /recordings/{recordingId}:
+    summary: Manage specific recording
+    description: Manage the recording files.
+    get:
+      tags:
+      - recordings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recording'
+              examples:
+                GET single recording:
+                  value:
+                    id: 1
+                    description: ""
+                    startTime: 1613483798684
+                    endTime: 1613483801577
+                    userId: 3
+                    studyId: 2
+          description: Successfully returned requested recording
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getSingleRecording
+      summary: Get a single recording
+    delete:
+      tags:
+      - recordings
+      responses:
+        "200":
+          description: Successfully deleted recording
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: deleteRecording
+      summary: Delete a single recording
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchRecording'
+            examples:
+              patch recording:
+                value:
+                  id: 1
+                  description: ""
+                  startTime: 1613483798684
+                  endTime: 1613483801577
+                  userId: 3
+                  studyId: 2
+        required: true
+      tags:
+      - recordings
+      responses:
+        "200":
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                updated recording:
+                  value: updatedRecording
+          description: Successfully updated recording
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: patrchRecording
+      summary: Change specific recording
+    parameters:
+    - examples:
+        recordingId:
+          value: "1"
+      name: recordingId
+      description: ID of the requested recording
+      schema:
+        type: integer
+      in: path
+      required: true
+  /users/{userId}/recordings:
+    summary: Manage recordings of a single user
+    get:
+      tags:
+      - recordings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recording'
+              examples:
+                GET user recordings:
+                  value:
+                  - id: 1
+                    description: ""
+                    startTime: 1613483798684
+                    endTime: 1613483801577
+                    userId: 3
+                    studyId: 2
+                  - id: 2
+                    description: ""
+                    startTime: 1613484513274
+                    endTime: 1613484514906
+                    userId: 3
+                    studyId: 2
+          description: Successfully returned recordings
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getUserRecordings
+      summary: Get a list of recordings of a single user
+    parameters:
+    - name: userId
+      description: ID of a single user
+      schema:
+        type: integer
+      in: path
+      required: true
+  /studies/{studyId}/config:
+    summary: Get all information of a single study
+    get:
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyConfig'
+              examples:
+                GET study config:
+                  value:
+                    studyId: 46
+                    name: some text
+                    description: some text
+                    tags:
+                    - name: some text
+                      isSingleEvent: true
+                    - name: some text
+                      isSingleEvent: true
+                    devices:
+                    - id: 47
+                      name: some text
+                      studyId: 48
+                      deviceType:
+                        id: 23
+                        name: some text
+                        module: some text
+                    - id: 85
+                      name: some text
+                      studyId: 58
+                      deviceType:
+                        id: 45
+                        name: some text
+                        module: some text
+          description: Successfully returned configuration of requested study
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getStudyConfig
+      summary: Get information and list of associated devices  of a single study
+    parameters:
+    - name: studyId
+      description: ID of requested study
+      schema:
+        type: integer
+      in: path
+      required: true
+  /studies/active:
+    summary: Manage active study
+    get:
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Study'
+              examples:
+                GET active study:
+                  value:
+                    id: 5
+                    name: doku study
+                    description: ""
+          description: Successfully returned study
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getActiveStudy
+      summary: Get information about active study
+  /studies/active/config:
+    summary: Get all information of your active study
+    get:
+      tags:
+      - studies
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyConfig'
+              examples:
+                GET active study:
+                  value:
+                    studyId: 56
+                    name: some text
+                    description: some text
+                    tags:
+                    - name: some text
+                      isSingleEvent: true
+                    - name: some text
+                      isSingleEvent: true
+                    devices:
+                    - id: 46
+                      name: some text
+                      studyId: 87
+                      deviceType:
+                        id: 20
+                        name: some text
+                        module: some text
+                    - id: 82
+                      name: some text
+                      studyId: 93
+                      deviceType:
+                        id: 1
+                        name: some text
+                        module: some text
+          description: Successfully returned configuration of requested study
+        "403":
+          $ref: '#/components/responses/AccessNotAllowed'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getActiveStudyConfig
+      summary: Get information and list of associated devices  of a single study
+  /studies/active/tags:
+    summary: Get tags of active study
+    get:
+      tags:
+      - tags
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+              examples:
+                GET Active tags:
+                  value:
+                  - name: some text
+                    isSingleEvent: true
+                  - name: some text 2
+                    isSingleEvent: false
+          description: Successfully retrieved tags
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getactivetags
+      summary: Get tags of active study
+  /questionnairedata:
+    summary: Manage questionnaire responses
+    description: On this route you can up- and download the results of questionnaires
+      and delete results.
+    get:
+      tags:
+      - questionnaires
+      parameters:
+      - name: userId
+        description: Get data for a single user
+        schema:
+          type: integer
+        in: query
+      - name: studyId
+        description: get data for a single study
+        schema:
+          type: integer
+        in: query
+      - name: recordingIds
+        description: Get data for specific recordings
+        schema:
+          type: array
+          items:
+            type: integer
+        in: query
+      - name: startTime
+        description: Get data after a given time
+        schema:
+          type: integer
+        in: query
+      - name: endTime
+        description: Get data before a given time
+        schema:
+          type: integer
+        in: query
+      - name: type
+        description: Get data for a specific questionnaire
+        schema:
+          $ref: '#/components/schemas/QuestionnaireType'
+        in: query
+        required: true
+      - name: questionnaireId
+        description: Get data of a single questionnaire
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuestionnaireData'
+              examples:
+                GET questionnairedata:
+                  value:
+                  - timestamp: 1613483610120000000
+                    result:
+                      fileId: 1
+                      duration: 10
+                      associatedTimestamp: 0
+                      description: Please record the ambient sounds of your surroundings.
+                    type: AUDIO
+                    questionnaireId: 4
+                    userId: 2
+                    studyId: 2
+                  - timestamp: 1613483632391000000
+                    result:
+                      fileId: 4
+                      duration: 11
+                      associatedTimestamp: 0
+                      description: "Please describe a significant emotional event,\
+                        \ which happened since the last prompt."
+                    type: AUDIO
+                    questionnaireId: 5
+                    userId: 2
+                    studyId: 2
+            text/csv:
+              schema:
+                type: string
+              examples:
+                GET questionnaire data csv:
+                  value: "timestamp,studyId,userId,questionnaireId,type,fileId,duration,associatedTimestamp,description\r\
+                    \n1613483610120000000,2,2,4,AUDIO,1,0,Please record the ambient\
+                    \ sounds of your surroundings.\r\n1613483632391000000,2,2,5,AUDIO,4,0,Please\
+                    \ describe a significant emotional event, which happened since\
+                    \ the last prompt.\r\n1613483716396000000,2,7,4,AUDIO,2,0,Please\
+                    \ record the ambient sounds of your surroundings.\r\n1613483720637000000,2,7,5,AUDIO,3,0,Please\
+                    \ describe a significant emotional event, which happened since\
+                    \ the last prompt.\r\n1613491232997000000,2,7,4,AUDIO,5,0,Please\
+                    \ record the ambient sounds of your surroundings.\r\n1613491233558000000,2,7,5,AUDIO,6,0,Please\
+                    \ describe a significant emotional event, which happened since\
+                    \ the last prompt.\r\n1613497237253000000,2,4,4,AUDIO,7,0,Please\
+                    \ record the ambient sounds of your surroundings.\r\n1613497237928000000,2,4,5,AUDIO,8,0,Please\
+                    \ describe a significant emotional event, which happened since\
+                    \ the last prompt.\r\n1613502415065000000,2,7,4,AUDIO,9,0,Please\
+                    \ record the ambient sounds of your surroundings."
+          description: Successfully returned questionnaire data
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: getQuestionnaireData
+      summary: Get a list of questionnaire results
+      description: "Download a a List of questionnaire Results.\n\n- The role `ADMIN`\
+        \ can download data of all studies  \n- The role `SCIENTIST` can only download\
+        \ data of studies they participate in\n- The role `PATIENT` can only download\
+        \ its own data\n"
+    post:
+      requestBody:
+        description: List of questionnaire results
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuestionnaireData'
+            examples:
+              POST questioinnairedata:
+                value:
+                - timestamp: 10020
+                  type: LIKERT_SCALE
+                  result:
+                    optionIndex: 1
+                    description: How stressed were you at this time?
+                  questionnaireId: 20
+      tags:
+      - questionnaires
+      responses:
+        "201":
+          description: Successfully added questionnaire data
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "409":
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                POST questionnaire data without active study:
+                  value: You are not able to upload because you are not assigned to
+                    a study!
+          description: You are not able to upload because you are not assigned to
+            a study!
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: addQuestionnaireData
+      summary: Add list of questionnaire results
+      description: Upload a a List of questionnaire Results to your current active
+        study.
+    delete:
+      tags:
+      - questionnaires
+      parameters:
+      - name: userId
+        description: Delete data of specific user
+        schema:
+          type: integer
+        in: query
+      - name: studyId
+        description: Delete data for specific study
+        schema:
+          type: integer
+        in: query
+      - name: questionnaireId
+        description: Delete data for specific questionnaire
+        schema:
+          type: string
+        in: query
+      - name: startTime
+        description: Deleta data after a given time
+        schema:
+          type: integer
+        in: query
+      - name: endTime
+        description: Delete data before a given time
+        schema:
+          type: integer
+        in: query
+      - name: type
+        description: Delete data of a  specific questionnaire type
+        schema:
+          enum:
+          - AFFECTIVE_SLIDER
+          - AUDIO
+          - LIKERT_SCALE
+          - FOOD
+          type: string
+        in: query
+        required: true
+      responses:
+        "200":
+          description: Successfully deleted data
+        "400":
+          content:
+            text/plain:
+              examples:
+                DELETE questionanire data failed:
+                  value: "Query must contain userId, studyId or questionnaireId as\
+                    \ parameter."
+          description: "Query must contain userId, studyId or questionnaireId as parameter."
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+      security:
+      - httpBearer: []
+      operationId: deleteQuestionnaireData
+      summary: Delete list of questionnaire results
+      description: |
+        Delete some of the questionnaire Results.
+
+        - The role `ADMIN` can delete all data
+        - The role `SCIENTIST` can only delete data of their own studies
+        - The role `PATIENT` can not delete data
+components:
+  schemas:
+    Credentials:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          description: Email of the user
+          type: string
+        password:
+          description: Password of the user
+          type: string
+        client:
+          description: Name of the client used to authenticate
+          type: string
+      example:
+        email: max.mustermann@android-studio.com
+        password: S3CretPassw0R1D!
+        client: app
+    LoginResponse:
+      required:
+      - refreshToken
+      - token
+      type: object
+      properties:
+        token:
+          description: Bearer Token to authenticate the user
+          type: string
+        refreshToken:
+          $ref: '#/components/schemas/RefreshToken'
+          description: Refresh token to refresh the token if it is expired
+      example:
+        refreshToken:
+          refreshToken: 3814c211-0797-4a31-9ca9-5215bc9ab701
+          userId: 1
+          clientId: app
+          issuedAt: 2021-02-22T12:46:11.418994911Z
+        token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImF1ZCI6InNlbnNvcmh1Yi11c2VycyIsImZpcnN0TmFtZSI6Ik1heCIsImxhc3ROYW1lIjoiTXVzdGVybWFubiIsImlzcyI6Imh0dHBzOi8vdm0taGVhbHRoeS5kaGNsYWIuaS5ocGkuZGUvIiwiaWQiOjEsImV4cCI6MTYxNDAzMzk3MSwiZW1haWwiOiJtYXgubXVzdGVybWFubkBhbmRyb2lkLXN0dWRpby5jb20ifQ.mipyDUjsVu_oWemy3N-5j4IrSP-_cYfGfYO6CMXou7A
+    RefreshToken:
+      required:
+      - clientId
+      - userId
+      - issuedAt
+      - refreshToken
+      type: object
+      properties:
+        refreshToken:
+          description: Refresh token that can be used to refresh the corresponding
+            token
+          type: string
+        issuedAt:
+          format: date-time
+          description: Datetime when the token was generated
+          type: string
+        clientId:
+          description: Name of the client used to authenticate
+          type: string
+        userId:
+          description: UserId wich is authenticated by the token
+          type: integer
+      example:
+        refreshToken: 3814c211-0797-4a31-9ca9-5215bc9ab701
+        userId: 1
+        clientId: app
+        issuedAt: 2021-02-22T12:46:11.418994911Z
+    BaseUser:
+      required:
+      - email
+      - firstName
+      - lastName
+      type: object
+      properties:
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        activeStudyId:
+          type: integer
+    PasswordUser:
+      required:
+      - password
+      properties:
+        password:
+          type: string
+      example:
+        password: password123
+    User:
+      allOf:
+      - $ref: '#/components/schemas/BaseUser'
+      - required:
+        - userRole
+        - failedLoginAttempts
+        type: object
+        properties:
+          userRole:
+            $ref: '#/components/schemas/UserRole'
+            description: Role of the user
+          failedLoginAttempts:
+            description: Login attemps of user with invalid credentials
+            type: integer
+      example:
+        email: max.mustermann@android-studio.com
+        firstName: Max
+        lastName: Mustermann
+        userRole: PATIENT
+        activeStudyId: 1
+        failedLoginAttemps: 1
+    RegisterUser:
+      allOf:
+      - $ref: '#/components/schemas/BaseUser'
+      - $ref: '#/components/schemas/PasswordUser'
+      - required:
+        - userRole
+        type: object
+        properties:
+          userRole:
+            $ref: '#/components/schemas/UserRole'
+      example:
+        email: max.mustermann@android-studio.com
+        firstName: Max
+        lastName: Mustermann
+        userRole: PATIENT
+    PostUser:
+      allOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/PasswordUser'
+    PatchUser:
+      type: object
+      properties:
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        userRole:
+          type: string
+        activeStudyId:
+          type: number
+    Study:
+      required:
+      - name
+      - description
+      - id
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+      example:
+        id: 15
+        name: some name
+        description: some description
+    PatchStudy:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Participation:
+      description: Participation of user in study
+      required:
+      - userId
+      - studyId
+      type: object
+      properties:
+        userId:
+          type: integer
+        studyId:
+          type: integer
+      example:
+        userId: 1
+        studyId: 1
+    Device:
+      required:
+      - name
+      - studyId
+      - deviceType
+      type: object
+      properties:
+        id:
+          description: Device ID
+          type: integer
+        name:
+          description: Custom device name
+          type: string
+        studyId:
+          description: ID of the study the device is associated with
+          type: integer
+        deviceType:
+          $ref: '#/components/schemas/DeviceType'
+          description: Type of the device
+      example:
+        id: 1
+        name: Internal
+        studyId: 2
+        deviceType:
+          id: 1
+          name: Smartphone Sensors
+          module: internal
+    PatchDevice:
+      type: object
+      properties:
+        name:
+          description: Custom name of the device
+          type: string
+        studyId:
+          description: ID of the study the device is associated with
+          type: integer
+        type:
+          description: Name of the device type
+          type: string
+      example:
+        name: Internal
+    Tag:
+      required:
+      - name
+      - isSingleEvent
+      type: object
+      properties:
+        name:
+          type: string
+        isSingleEvent:
+          type: boolean
+      example:
+        name: Swim
+        isSingleEvent: false
+    PatchTag:
+      type: object
+      properties:
+        name:
+          type: string
+        isSingleEvent:
+          type: boolean
+      example:
+        name: Take blood pressure pill
+    TagRecording:
+      required:
+      - name
+      - startTime
+      - isSingleEvent
+      properties:
+        name:
+          type: string
+        startTime:
+          type: number
+        endTime:
+          type: number
+        isSingleEvent:
+          type: boolean
+        userId:
+          description: ""
+          type: integer
+        studyId:
+          description: ""
+          type: integer
+    TagRecordingArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/TagRecording'
+    SensorData:
+      required:
+      - value
+      - accuracy
+      - type
+      - timestamp
+      - deviceId
+      - userId
+      - studyId
+      type: object
+      properties:
+        value:
+          type: number
+        accuracy:
+          type: number
+        type:
+          $ref: '#/components/schemas/SensorDataType'
+        timestamp:
+          type: integer
+        deviceId:
+          type: integer
+        userId:
+          description: ""
+          type: integer
+        studyId:
+          description: ""
+          type: integer
+    SensorDataArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/SensorData'
+    DeviceType:
+      title: DeviceType
+      description: Type of a device
+      required:
+      - id
+      - module
+      - name
+      type: object
+      properties:
+        id:
+          description: ID of a device type
+          type: integer
+        name:
+          description: Name of the device
+          type: string
+        module:
+          description: Name of the module the device belongs to
+          type: string
+      example:
+        id: 1
+        name: Smartphone Sensors
+        module: internal
+    PostDevice:
+      title: PostDevice
+      description: Post a device
+      required:
+      - name
+      - studyId
+      - type
+      type: object
+      properties:
+        name:
+          description: Custom name of the device
+          type: string
+        type:
+          description: Name of the device type
+          type: string
+        studyId:
+          description: |
+            ID of the study the device is associated with
+          type: integer
+      example:
+        name: Shimmer
+        type: Shimmer GSR+
+        studyId: 15
+    AuthToken:
+      title: AuthToken
+      description: Token to authenticate user
+      required:
+      - token
+      type: object
+      properties:
+        token:
+          description: Token to authenticate user
+          type: string
+      example:
+        token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBdXRoZW50aWNhdGlvbiIsImF1ZCI6InNlbnNvcmh1Yi11c2VycyIsImZpcnN0TmFtZSI6Ik1heCIsImxhc3ROYW1lIjoiTXVzdGVybWFubiIsImlzcyI6Imh0dHBzOi8vdm0taGVhbHRoeS5kaGNsYWIuaS5ocGkuZGUvIiwiaWQiOjEsImV4cCI6MTYxNDA0NDE2MSwiZW1haWwiOiJtYXgubXVzdGVybWFubkBhbmRyb2lkLXN0dWRpby5jb20ifQ.pDg1YpmzEMSYRQlWtW2OLwkdN6_iB0EJRlXSt82urwM
+    Batch:
+      title: Batch
+      description: Groups questionnaires
+      required:
+      - repetition
+      - randomized
+      - questionnaires
+      - name
+      - description
+      - batchId
+      type: object
+      properties:
+        batchId:
+          description: ID of questionnaire batch
+          type: integer
+        questionnaires:
+          description: Questionnaires of the batch
+          type: array
+          items: {}
+        repetition:
+          description: Intervall in **minutes** in which notifications to fill out
+            the questionnaires is send
+          type: integer
+        randomized:
+          description: Indicates if questionnaires are displayed in randomized order
+          type: boolean
+        name:
+          description: Custom name of the batch
+          type: string
+        description:
+          description: Description of the questionnaire batch
+          type: string
+      example:
+        batchId: 4
+        questionnaires:
+        - questionnaireId: 9
+          type: LIKERT_SCALE
+          options:
+            option1: Not at all
+            option2: 'Slightly '
+            option3: Moderately
+            option4: 'Very '
+            option5: Extremely
+            description: How stressed were you at this time?
+        repetition: 1440
+        randomized: false
+        name: Eating labels
+        description: Labels
+    Questionnaire:
+      title: Questionnaire
+      description: Questionnaire to collect data
+      required:
+      - options
+      - questionnaireId
+      - type
+      type: object
+      properties:
+        questionnaireId:
+          description: ID of the questionnaire
+          type: integer
+        type:
+          $ref: '#/components/schemas/QuestionnaireType'
+          description: Type of the questionnaire
+        options:
+          $ref: '#/components/schemas/QuestionnaireOption'
+          description: Options to customize the questionnaire
+          properties:
+            option1:
+              type: string
+            option2:
+              type: string
+            option3:
+              type: string
+            option4:
+              type: string
+            option5:
+              type: string
+            description:
+              type: string
+      example:
+        questionnaireId: 9
+        type: LIKERT_SCALE
+        options:
+          option1: Not at all
+          option2: 'Slightly '
+          option3: Moderately
+          option4: 'Very '
+          option5: Extremely
+          description: How stressed were you at this time?
+    QuestionnaireType:
+      description: Types of questionnaires
+      enum:
+      - UNKNOWN
+      - AFFECTIVE_SLIDER
+      - AUDIO
+      - LIKERT_SCALE
+      - FOOD
+      type: string
+      example: AFFECTIVE_SLIDER
+    QuestionnaireOption:
+      oneOf:
+      - type: object
+      - $ref: '#/components/schemas/LikertScaleOptions'
+      - $ref: '#/components/schemas/AudioOptions'
+      - $ref: '#/components/schemas/EmptyOptions'
+      description: Option of questionnaire
+      type: object
+    LikertScaleOptions:
+      title: LikertScaleOptions
+      description: Options to modify the likert scale questionnaire
+      required:
+      - option5
+      - option4
+      - option3
+      - option2
+      - option1
+      - description
+      type: object
+      properties:
+        option1:
+          type: string
+        option2:
+          type: string
+        option3:
+          type: string
+        option4:
+          type: string
+        option5:
+          type: string
+        description:
+          description: Description shown when filling out this questionnaire
+          type: string
+      example:
+        option1: Not at all
+        option2: 'Slightly '
+        option3: Moderately
+        option4: 'Very '
+        option5: Extremely
+        description: How stressed were you at this time?
+    AudioOptions:
+      title: AudioOptions
+      description: Options to modify the audio questionnaire
+      required:
+      - timepicker
+      - description
+      - minduration
+      - maxduration
+      type: object
+      properties:
+        minduration:
+          description: Minimum duration in seconds to be recorded
+          type: integer
+        maxduration:
+          description: Maximum duration in seconds to be recorded
+          type: integer
+        timepicker:
+          description: Indicates whether a timepicker should be displayed to reference
+            another time
+          type: boolean
+        description:
+          description: Description shown when filling out this questionnaire
+          type: string
+      example:
+        minduration: 10
+        maxduration: 120
+        timepicker: true
+        description: "Please describe a significant emotional event, which you experienced\
+          \ earlier today."
+    EmptyOptions:
+      title: EmptyOptions
+      description: No options to describe the questionnaire
+      type: object
+      example: {}
+    DeviceModule:
+      title: DeviceModule
+      description: A Module for devices with all its availible devices
+      required:
+      - description
+      - deviceTypes
+      - name
+      type: object
+      properties:
+        name:
+          description: Name of this module
+          type: string
+        description:
+          description: Description of this module
+          type: string
+        deviceTypes:
+          description: List of all availible devices for this module
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceType'
+      example:
+        name: internal
+        description: Internal Smartphone Sensors
+        deviceTypes:
+        - id: 1
+          name: Smartphone Sensors
+          module: internal
+    QuestionnaireResult:
+      oneOf:
+      - type: object
+      - $ref: '#/components/schemas/AffectiveSliderResult'
+      - $ref: '#/components/schemas/AudioResult'
+      - $ref: '#/components/schemas/LikertScaleResult'
+      description: Single result of a questionnaire
+      type: object
+      example:
+        fileId: 1
+        duration: 10
+        associatedTimestamp: 0
+        description: Please record the ambient sounds of your surroundings.
+    AffectiveSliderResult:
+      title: AffectiveSliderResult
+      description: Result of an affective slider questionnaire
+      required:
+      - arousal
+      - valence
+      type: object
+      properties:
+        arousal:
+          description: Arousal value between 0 and 1
+          type: integer
+        valence:
+          description: Valence value between 0 and 1
+          type: integer
+      example:
+        arousal: 50
+        valence: 63
+    LikertScaleResult:
+      title: LikertScaleResult
+      description: Result of an likert scale questionnaire
+      required:
+      - optionIndex
+      type: object
+      properties:
+        optionIndex:
+          description: Index of chosen option
+          type: integer
+      example:
+        optionIndex: 1
+    AudioResult:
+      title: AudioResult
+      description: Result of an audio questionnaire
+      required:
+      - associatedTimestamp
+      - description
+      - fileId
+      - duration
+      type: object
+      properties:
+        fileId:
+          description: ID of the associated file
+          type: integer
+        duration:
+          description: Duration of the recorded audio file
+          type: integer
+        associatedTimestamp:
+          description: Timestamp of the event talked about. 0 if talked about present
+            event.
+          type: integer
+        description:
+          description: Description of the questionnaire
+          type: string
+      example:
+        fileId: 1
+        duration: 10
+        associatedTimestamp: 0
+        description: Please record the ambient sounds of your surroundings.
+    UserRole:
+      description: Role of a user
+      enum:
+      - PATIENT
+      - SCIENTIST
+      - ADMIN
+      type: string
+      example: SCIENTIST
+    Recording:
+      title: Recording
+      description: A recording for a specific timeframe
+      required:
+      - description
+      - endTime
+      - userId
+      - id
+      - studyId
+      - startTime
+      type: object
+      properties:
+        id:
+          description: ID of the recording
+          type: integer
+        description:
+          description: Description of the recording
+          type: string
+        startTime:
+          description: Start time of the recording
+          type: integer
+        endTime:
+          description: End time of the recording
+          type: integer
+        userId:
+          description: ID of the user recording data
+          type: integer
+        studyId:
+          description: ID of the active study while recording data
+          type: integer
+      example:
+        id: 1
+        description: ""
+        startTime: 1613483798684
+        endTime: 1613483801577
+        userId: 3
+        studyId: 2
+    studyIdMap:
+      title: studyIdMap
+      description: Contains study ID
+      required:
+      - studyId
+      type: object
+      properties:
+        studyId:
+          type: integer
+      example:
+        studyId: 5
+    StudyConfig:
+      title: StudyConfig
+      description: Full configuration auf a study
+      required:
+      - tags
+      - studyId
+      - name
+      - devices
+      - description
+      type: object
+      properties:
+        studyId:
+          description: ID of requested study
+          type: integer
+        name:
+          description: Name of requested study
+          type: string
+        description:
+          description: Description of requested study
+          type: string
+        tags:
+          description: Tags of requested study
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        devices:
+          description: List of all devices associated to this study
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+      example:
+        studyId: 2
+        name: example name
+        description: example description
+        tags: []
+        devices:
+        - id: 1
+          name: Internal
+          studyId: 2
+          deviceType:
+            id: 1
+            name: Smartphone Sensors
+            module: internal
+    SensorDataType:
+      enum:
+      - ACCELERATION_X
+      - ACCELERATION_Y
+      - ACCELERATION_Z
+      - GYROSCOPE_X
+      - GYROSCOPE_Y
+      - GYROSCOPE_Z
+      - MAGNETOMETER_X
+      - MAGNETOMETER_Y
+      - MAGNETOMETER_Z
+      - ORIENTATION_W
+      - ORIENTATION_X
+      - ORIENTATION_Y
+      - ORIENTATION_Z
+      - AMBIENT_TEMPERATURE
+      - PRESSURE
+      - GRAVITY_X
+      - GRAVITY_Y
+      - GRAVITY_Z
+      - LINEAR_ACCELERATION_X
+      - LINEAR_ACCELERATION_Y
+      - LINEAR_ACCELERATION_Z
+      - LIGHT
+      - HEART_RATE
+      - OXYGEN_SATURATION_SPO2
+      - BLOOD_PERFUSION
+      - STEPS
+      - BLOOD_PULSE_WAVE
+      - RESPIRATION_RATE
+      - TEMPERATURE_LOCAL
+      - GALVANIC_SKIN_RESPONSE
+      - PERFUSION_INDEX
+      - STRESS
+      - ENERGY
+      - RICHNESS
+      - ACTIVITY_CLASSIFICATION
+      - HEART_RATE_VARIABILITY
+      - TEMPERATURE_BAROMETER
+      - ECG
+      - GPS_LATITUDE
+      - GPS_LONGITUDE
+      - TAG
+      - INTER_BEAT_INTERVAL
+      - BLOOD_VOLUME_PULSE
+      - PPG
+      - SCANNED_BLUETOOTH_DEVICES
+      type: string
+      example: HEART_RATE
+    PostBatch:
+      title: Batch
+      description: Groups questionnaires
+      required:
+      - repetition
+      - randomized
+      - questionnaires
+      - name
+      - description
+      type: object
+      properties:
+        questionnaires:
+          description: Questionnaires of the batch
+          type: array
+          items:
+            $ref: '#/components/schemas/PostQuestionnaire'
+        repetition:
+          description: Intervall in **minutes** in which notifications to fill out
+            the questionnaires is send
+          type: integer
+        randomized:
+          description: Indicates if questionnaires are displayed in randomized order
+          type: boolean
+        name:
+          description: Custom name of the batch
+          type: string
+        description:
+          description: Description of the questionnaire batch
+          type: string
+      example:
+        questionnaires:
+        - questionnaireId: 9
+          type: LIKERT_SCALE
+          options:
+            option1: Not at all
+            option2: 'Slightly '
+            option3: Moderately
+            option4: 'Very '
+            option5: Extremely
+            description: How stressed were you at this time?
+        repetition: 1440
+        randomized: false
+        name: Eating labels
+        description: Labels
+    PostQuestionnaire:
+      title: Questionnaire
+      description: Questionnaire to collect data
+      required:
+      - options
+      - type
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/QuestionnaireType'
+          description: Type of the questionnaire
+        options:
+          $ref: '#/components/schemas/QuestionnaireOption'
+          description: Options to customize the questionnaire
+          properties:
+            option1:
+              type: string
+            option2:
+              type: string
+            option3:
+              type: string
+            option4:
+              type: string
+            option5:
+              type: string
+            description:
+              type: string
+      example:
+        type: LIKERT_SCALE
+        options:
+          option1: Not at all
+          option2: 'Slightly '
+          option3: Moderately
+          option4: 'Very '
+          option5: Extremely
+          description: How stressed were you at this time?
+    PostRecording:
+      title: Recording
+      description: A recording for a specific timeframe
+      required:
+      - description
+      - endTime
+      - userId
+      - studyId
+      - startTime
+      type: object
+      properties:
+        description:
+          description: Description of the recording
+          type: string
+        startTime:
+          description: Start time of the recording
+          type: integer
+        endTime:
+          description: End time of the recording
+          type: integer
+        userId:
+          description: ID of the user recording data
+          type: integer
+        studyId:
+          description: ID of the active study while recording data
+          type: integer
+      example:
+        description: ""
+        startTime: 1613483798684
+        endTime: 1613483801577
+        userId: 3
+        studyId: 2
+    PostStudy:
+      required:
+      - name
+      - description
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      example:
+        name: Internal IMU Breath Test
+        description: 5min internal sensors on abdomen while breathing
+    PatchRecording:
+      title: Recording
+      description: A recording for a specific timeframe
+      required: []
+      type: object
+      properties:
+        id:
+          description: ID of the recording
+          type: integer
+        description:
+          description: Description of the recording
+          type: string
+        startTime:
+          description: Start time of the recording
+          type: integer
+        endTime:
+          description: End time of the recording
+          type: integer
+        userId:
+          description: ID of the user recording data
+          type: integer
+        studyId:
+          description: ID of the active study while recording data
+          type: integer
+      example:
+        id: 1
+        description: ""
+        startTime: 1613483798684
+        endTime: 1613483801577
+        userId: 3
+        studyId: 2
+    QuestionnaireData:
+      title: QuestionnaireData
+      description: ""
+      required:
+      - questionnaireId
+      - result
+      - timestamp
+      - type
+      type: object
+      properties:
+        timestamp:
+          type: integer
+        type:
+          $ref: '#/components/schemas/QuestionnaireType'
+        result:
+          $ref: '#/components/schemas/QuestionnaireResult'
+          properties:
+            optionIndex:
+              format: int32
+              type: integer
+            description:
+              type: string
+        questionnaireId:
+          type: integer
+      example:
+        timestamp: 10020
+        type: LIKERT_SCALE
+        result:
+          optionIndex: 1
+          description: How stressed were you at this time?
+        questionnaireId: 20
+    File:
+      description: File object
+      type: object
+      properties:
+        type:
+          description: ""
+          type: string
+    PostSensorData:
+      required:
+      - value
+      - accuracy
+      - type
+      - timestamp
+      - deviceId
+      type: object
+      properties:
+        value:
+          type: number
+        accuracy:
+          type: number
+        type:
+          $ref: '#/components/schemas/SensorDataType'
+        timestamp:
+          type: integer
+        deviceId:
+          type: integer
+        userId:
+          description: ""
+          type: integer
+        studyId:
+          description: ""
+          type: integer
+  responses:
+    NotFound:
+      content:
+        application/json:
+          example:
+            error: Resource not found
+      description: The specified resource was not found
+    Unauthorized:
+      content:
+        application/json:
+          example:
+            error: You are not logged in
+      description: Unauthorized
+    AccessNotAllowed:
+      content:
+        application/json:
+          example:
+            error: You cannot access other users' data unless you are a Scientist
+              and the user participates in your study.
+      description: Access to the specified resource was not allowed
+    EmailExisting:
+      content:
+        application/json:
+          example:
+            error: The email is already taken
+      description: The `email` is already taken
+    InternalServerError:
+      description: Something went wrong interanlly
+    BadRequest:
+      description: "The request was unacceptable, often due to missing a required\
+        \ parameter."
+  examples:
+    SensorData:
+      value:
+      - timestamp: 1591019142000
+        value: 4523.43
+        accuracy: 32.32
+        type: ACCELERATION_X
+        deviceId: 13
+    SensorDataArray:
+      value:
+      - timestamp: 1591019142000
+        value: 4523.43
+        accuracy: 32.32
+        type: ACCELERATION_X
+        deviceId: 13
+      - timestamp: 1591019142000
+        value: 100.12
+        accuracy: 23.23
+        type: ACCELERATION_Y
+        deviceId: 13
+      - timestamp: 1591019144000
+        value: 1223.43
+        accuracy: 32.32
+        type: ACCELERATION_X
+        deviceId: 13
+    SensorDataArrayCSV:
+      value: "timestamp,value,accuracy,type,deviceId\n1591019142000,4523.43,32.32,ACCELERATION_X,13\n\
+        1591019142000,100.12,23.23,ACCELERATION_Y,13\n1591019144000,1223.43,32.32,ACCELERATION_X,13\n"
+    SensorDataArrayParquet:
+      value: |
+        1010100100101001010101010101010101010101001010101010
+    TagRecordingSingleEvent:
+      value:
+      - name: Take pill
+        startTime: 1591019142000
+        isSingleEvent: true
+    TagRecordingActivity:
+      value:
+      - name: Walk
+        startTime: 1591109142000
+        endTime: 1591109242021
+        isSingleEvent: false
+    TagRecordingArray:
+      value:
+      - name: Take pill
+        startTime: 1591019142000
+        isSingleEvent: true
+      - name: Walk
+        startTime: 1591109142000
+        endTime: 1591109242021
+        isSingleEvent: false
+    TagRecordingArrayCSV:
+      value: "name,startTime,endTime,isSingleEvent\nTake pill,1591019142000,0,true\n\
+        Walk,1591109142000,1591109242021,false\n"
+  securitySchemes:
+    httpBearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: You have to authenticate for all routes except /register with a
+        JWT via Bearer Auth. You receive your token at /login.
+security:
+- httpBearer: []
+tags:
+- name: signup
+  description: Register and Log-In
+- name: users
+  description: Users of the system
+- name: studies
+  description: "Studies are there to manage necessary configurations, participants\
+    \ and the collected data"
+- name: participations
+  description: Enroll users to studies
+- name: tags
+  description: Tags demonstrate the range of possible activities or events for a study
+- name: tagrecordings
+  description: Log active tags while recording
+- name: devices
+  description: Add required devices for a study
+- name: sensordata
+  description: Log received data from sensors while recording
+- name: batches
+  description: Batches grouping questionnaires
+- name: questionnaires
+  description: Questionnaires to collect data
+- name: filestorage
+  description: Managing file upload
+- name: recordings
+  description: Recordings in which data is recorded

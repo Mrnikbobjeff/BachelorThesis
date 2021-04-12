@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:vm="clr-namespace:BPTest.ViewModels"
+             x:Class="BPTest.Views.UploadPage"
+             Title="{Binding Title}">
+
+    <ContentPage.BindingContext>
+        <vm:UploadViewModel />
+    </ContentPage.BindingContext>
+    <ContentPage.Content>
+        <StackLayout Padding="10,0,10,0" VerticalOptions="Center">
+            <Button BackgroundColor="DarkGray" Text="Upload" Command="{Binding UploadDataCommand}" VerticalOptions="End" />
+            <Label Text="Currently locally storing 0 recordings, 0 tags and 0 data points."/>
+            <ProgressBar Progress="0.3" />
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:vm="clr-namespace:BPTest.ViewModels"
+             xmlns:models="clr-namespace:BPTest.Models"
+             x:Class="BPTest.Views.SettingsPage"
+             Title="{Binding Title}">
+    <ContentPage.Content>
+        <CollectionView IsGrouped="True" ItemsSource="{Binding GroupedSettings}" BackgroundColor="Gainsboro" >
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Grid Padding="0,0,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="1"/>
+                        </Grid.RowDefinitions>
+                        <Label Text="{Binding Name}" Margin="10,0,0,0"
+                   TextColor="#FF4081"
+                   FontSize="Large"
+                   FontAttributes="Bold" Padding="10,10,0,10" />
+                        <Frame BackgroundColor="LightGray" Grid.Row="1" HorizontalOptions="FillAndExpand"  HeightRequest="0.1" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Orientation="Horizontal" Padding="0,10,0,0">
+                        <StackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding TappedCommand}" NumberOfTapsRequired="1" />
+                        </StackLayout.GestureRecognizers>
+                        <StackLayout.BindingContext>
+                            <models:DeviceSetting />
+                        </StackLayout.BindingContext>
+                        <Image Source="{Binding Icon}" Margin="20"/>
+                        <StackLayout Orientation="Vertical" VerticalOptions="Center" Margin="0,0,10,0" Spacing="1">
+                            <Label Text="{Binding Title}" FontSize="Medium" />
+                            <Label Text="{Binding Description}" />
+                            <Label Text="{Binding Value}" />
+                        </StackLayout>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </ContentPage.Content>
+</ContentPage>
