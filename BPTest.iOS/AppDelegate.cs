@@ -27,7 +27,7 @@ namespace BPTest.iOS
             global::Xamarin.Forms.Forms.Init();
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<InternalIOSDevice>().Named<IDeviceBuilder>(PlatformSpecificDeviceBuilderServiceKeys.InternalDevice);
-            LoadApplication(new App(containerBuilder));
+            LoadApplication(new App());
 
             return base.FinishedLaunching(app, options);
         }

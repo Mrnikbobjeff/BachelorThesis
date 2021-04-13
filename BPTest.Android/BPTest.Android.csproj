@@ -126,6 +126,10 @@
       <Project>{555BD2A8-9727-4DB1-883C-B0BC3489BEA3}</Project>
       <Name>BPTest</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Empathica.Android\Empathica.Android.csproj">
+      <Project>{D46B9AC5-D094-43AD-B078-161D3EF433B9}</Project>
+      <Name>Empathica.Android</Name>
+    </ProjectReference>
     <ProjectReference Include="..\InternalSensors.Android\InternalSensors.Android.csproj">
       <Project>{E7988D92-AD78-4C01-8490-787F79D0893B}</Project>
       <Name>InternalSensors.Android</Name>

@@ -12,6 +12,7 @@ using BPTest.Repositories.Interfaces;
 using BPTest.Repositories;
 using BPTest.Shared.Models.Authentication;
 using BPTest.Views;
+using BPTest.Utils;
 
 namespace BPTest
 {
@@ -40,6 +41,7 @@ namespace BPTest
             containerBuilder.RegisterType<DevicesViewModel>().AsSelf().SingleInstance();
             containerBuilder.RegisterType<DeviceReadingViewModel>().AsSelf();
             containerBuilder.RegisterType<DeviceRepository>().AsImplementedInterfaces().SingleInstance();
+            containerBuilder.RegisterType<DeviceBuilderFactory>().AsImplementedInterfaces().SingleInstance();
 
             DependencyService = containerBuilder.Build();
             Routing.RegisterRoute("devices/details", typeof(DeviceReadingPage));

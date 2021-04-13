@@ -1,4 +1,5 @@
-﻿using BPTest.Shared.Models.Views;
+﻿using BPTest.Shared.Models;
+using BPTest.Shared.Models.Views;
 using BPTest.Views;
 using System.Collections.Generic;
 using System.Windows.Input;

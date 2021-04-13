@@ -24,6 +24,16 @@ namespace InternalSensors
 
         public override BPTest.Shared.Devices.DeviceType DeviceType => throw new System.NotImplementedException();
 
+        public override Task Connect()
+        {
+            return StartCollection();
+        }
+
+        public override Task Disconnect()
+        {
+            return StopCollection();
+        }
+
         public async Task StartCollection()
         {
             Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
@@ -47,6 +57,7 @@ namespace InternalSensors
             using(var realm = Realm.GetInstance(SensorhubRealmConfiguration.Configuration))
             {
                 realm.Add(s);
+                OnSensorDataReceived(s);
             }
         }
 

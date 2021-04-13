@@ -40,8 +40,18 @@
     <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="EmpaticaiOSDevice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BPTest.Shared\BPTest.Shared.csproj">
+      <Project>{2674699e-a6d1-49d6-abc0-8d13da47464f}</Project>
+      <Name>BPTest.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Empathica.Shared\Empathica.Shared.csproj">
+      <Project>{f3a79b97-c203-4ca1-ae7a-a907b29baa72}</Project>
+      <Name>Empathica.Shared</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

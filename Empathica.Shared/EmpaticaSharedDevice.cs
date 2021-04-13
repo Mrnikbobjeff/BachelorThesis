@@ -6,6 +6,7 @@ using Realms;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace Empathica.Shared
@@ -35,14 +36,16 @@ namespace Empathica.Shared
             }
         }
 
-        public override void Connect()
+        public override Task Connect()
         {
             connectionHandler.StartScanning(this);
+            return Task.CompletedTask;
         }
 
-        public override void Disconnect()
+        public override Task Disconnect()
         {
             connectionHandler.Disconnect();
+            return Task.CompletedTask;
         }
 
         public void OnDeviceFound(IEmpaticaDevice empaticaDevice)

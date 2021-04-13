@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace BPTest.Shared.Devices
 {
@@ -8,8 +9,8 @@ namespace BPTest.Shared.Devices
         {
         }
 
-        public override void Disconnect() { }
-        public override void Connect() { }
+        public override Task Disconnect() => Task.CompletedTask;
+        public override Task Connect() => Task.CompletedTask;
 
     }
 }

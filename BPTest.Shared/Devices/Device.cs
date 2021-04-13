@@ -8,6 +8,7 @@ namespace BPTest.Shared.Devices
 {
     public class Device : RealmObject
     {
+        [PrimaryKey]
         public long Id { get; set; }
         public string Name { get; set; }
 

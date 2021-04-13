@@ -1,6 +1,7 @@
 ﻿using BPTest.Repositories.Interfaces;
 using BPTest.Shared.Devices;
 using BPTest.Shared.Models.Views;
+using BPTest.Shared.Repositories;
 using Realms;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ namespace BPTest.Repositories
         {
             using (var realm = await Realm.GetInstanceAsync(Configuration))
             {
-                return realm.All<Device>().ToArray().Select(x => new ActiveDevice { Id = x.Id, Module = x.Module, Adress = x.PairedDeviceAdress, Name = x.Name }).ToArray();
+                var devices = realm.All<Device>().ToArray().Select(x => new ActiveDevice { Id = x.Id, Module = x.Module, Adress = x.PairedDeviceAdress, Name = x.Name }).ToArray();
+                return devices;
             }
         }
 
@@ -24,14 +26,11 @@ namespace BPTest.Repositories
         {
             using (var realm = await Realm.GetInstanceAsync(Configuration))
             {
-                var activeDeviceTypeIds = activeDevices.Select(x => x.DeviceType.Module).ToArray();
-                var oldDevices = realm.All<Device>().Where(device => !activeDeviceTypeIds.Contains(device.Module));
-                realm.RemoveRange(oldDevices);
+                realm.RemoveAll<Device>();
 
-                var newDevices = activeDevices.Where(x => !activeDeviceTypeIds.Contains(x.DeviceType.Module))
-                    .Select(x => new Device { Module = x.DeviceType.Module, Name = x.Name, PairedDeviceDescription = x.DeviceType.Name });
-
-                realm.Add(newDevices);
+                var newDevices = activeDevices
+                    .Select(x => new Device { Module = x.DeviceType.Module, Name = x.Name, PairedDeviceDescription = x.DeviceType.Name, Id = x.Id }).ToArray();
+                realm.Write(() => realm.Add(newDevices));
             }
         }
     }

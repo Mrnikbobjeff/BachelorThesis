@@ -18,6 +18,7 @@ namespace InternalSensors.Android
 
         public Photometer()
         {
+            listener = new LightSensorListener(this);
             luminositySensor = SensorManager?.GetDefaultSensor(SensorType.Light);
         }
 
@@ -33,7 +34,7 @@ namespace InternalSensors.Android
 
         internal void OnChanged(float value)
         {
-            ReadingChanged.Invoke(this, new PhotometerEventArgs { Value = value });
+            ReadingChanged?.Invoke(this, new PhotometerEventArgs { Value = value });
         }
     }
 

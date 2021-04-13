@@ -32,9 +32,16 @@ namespace BPTest.Views
             foreach (var item in ViewModel.DataTypes)
             {
                 var view = new ChartView();
+                var stackLayout = new StackLayout();
+                view.HorizontalOptions = LayoutOptions.CenterAndExpand;
+                view.VerticalOptions = LayoutOptions.CenterAndExpand;
+                view.BackgroundColor = Color.Blue;
+                view.WidthRequest = 200;
+                view.HeightRequest = 200;
                 view.Chart = new LineChart();
-                chartStackLayout.Children.Add(view);
+                stackLayout.Children.Add(view);
                 viewDictionary.Add(item, view);
+                Content = stackLayout;
             }
         }
         DeviceReadingViewModel ViewModel = null;
@@ -61,6 +68,7 @@ namespace BPTest.Views
         protected override void OnDisappearing()
         {
             ViewModel.DeciveReadingUpdated -= ViewModel_DeciveReadingUpdated;
+            ViewModel.OnDisappearing();
             base.OnDisappearing();
         }
     }

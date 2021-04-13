@@ -167,9 +167,17 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\BPTest.Shared\BPTest.Shared.csproj">
+      <Project>{2674699E-A6D1-49D6-ABC0-8D13DA47464F}</Project>
+      <Name>BPTest.Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BPTest\BPTest.csproj">
       <Project>{555BD2A8-9727-4DB1-883C-B0BC3489BEA3}</Project>
       <Name>BPTest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InternalSensors.iOS\InternalSensors.iOS.csproj">
+      <Project>{946948F6-D54A-4CF6-BF17-901A48F33827}</Project>
+      <Name>InternalSensors.iOS</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

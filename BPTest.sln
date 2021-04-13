@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmpaticaE4Link.Android", "E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Empatica.iOS", "Empatica.iOS\Empatica.iOS.csproj", "{433E0594-B000-449B-A834-601FF18220BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmpaticaE4Link.iOS", "EmpaticaE4Link.iOS\EmpaticaE4Link.iOS.csproj", "{4DB82C9B-270A-453C-AFFF-9E3118FA309F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -205,6 +207,18 @@ Global
 		{433E0594-B000-449B-A834-601FF18220BB}.Release|iPhone.Build.0 = Release|Any CPU
 		{433E0594-B000-449B-A834-601FF18220BB}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{433E0594-B000-449B-A834-601FF18220BB}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Release|iPhone.Build.0 = Release|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -218,6 +232,7 @@ Global
 		{D46B9AC5-D094-43AD-B078-161D3EF433B9} = {3A6562E2-D309-4B0E-97CB-7E58963FCCF3}
 		{2B506AB1-1743-4D02-BA48-110A64934BCB} = {3A6562E2-D309-4B0E-97CB-7E58963FCCF3}
 		{433E0594-B000-449B-A834-601FF18220BB} = {3A6562E2-D309-4B0E-97CB-7E58963FCCF3}
+		{4DB82C9B-270A-453C-AFFF-9E3118FA309F} = {3A6562E2-D309-4B0E-97CB-7E58963FCCF3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {92BA7693-A379-447D-9588-92A0B3CA1375}

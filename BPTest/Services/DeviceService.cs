@@ -1,6 +1,7 @@
 ﻿using BPTest.Repositories.Interfaces;
 using BPTest.Services.Interfaces;
 using BPTest.Shared.Models.Views;
+using NLog;
 using SensorHub.Backend;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace BPTest.Services
     {
         private readonly ISwaggerClient swaggerClient;
         private readonly IDeviceRepository deviceRepository;
+        readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public DeviceService(ISwaggerClient swaggerClient, IDeviceRepository deviceRepository)
         {
@@ -23,15 +25,24 @@ namespace BPTest.Services
 
         public async Task<ActiveDevice[]> GetActiveDevicesAsync(bool refresh = false)
         {
-            if(refresh)
+            try
             {
-                var activeDevices = await swaggerClient.GetDeviceActiveStudyAsync().ConfigureAwait(false);
-                await deviceRepository.UpdateDevices(activeDevices).ConfigureAwait(false); ;
-                return await deviceRepository.GetActiveDevices().ConfigureAwait(false); ;
+
+                if (refresh)
+                {
+                    var activeDevices = await swaggerClient.GetDeviceActiveStudyAsync().ConfigureAwait(false);
+                    await deviceRepository.UpdateDevices(activeDevices).ConfigureAwait(false); ;
+                    return await deviceRepository.GetActiveDevices().ConfigureAwait(false); ;
+                }
+                else
+                {
+                    return await deviceRepository.GetActiveDevices().ConfigureAwait(false); ;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return await deviceRepository.GetActiveDevices().ConfigureAwait(false); ;
+                logger.Error(ex);
+                return Array.Empty<ActiveDevice>();
             }
         }
     }
