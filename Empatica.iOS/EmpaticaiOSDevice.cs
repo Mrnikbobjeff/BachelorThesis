@@ -7,6 +7,7 @@ namespace Empatica.iOS
     {
         public EmpaticaiOSDevice(Device device) : base(device)
         {
+            connectionHandler = new EmpaticaiOSConnectionHandler(this, device);
         }
     }
     public class EmpaticaiOSDeviceBuilder : EmpaticaDeviceBuilder

@@ -13,6 +13,8 @@ using BPTest.Repositories;
 using BPTest.Shared.Models.Authentication;
 using BPTest.Views;
 using BPTest.Utils;
+using BPTest.ViewModels.Testing;
+using BPTest.Views.Testing;
 
 namespace BPTest
 {
@@ -40,11 +42,13 @@ namespace BPTest
             containerBuilder.RegisterType<LoginViewModel>().AsSelf().SingleInstance();
             containerBuilder.RegisterType<DevicesViewModel>().AsSelf().SingleInstance();
             containerBuilder.RegisterType<DeviceReadingViewModel>().AsSelf();
+            containerBuilder.RegisterType<EmpaticaConnectionTestPageViewModel>().AsSelf();
             containerBuilder.RegisterType<DeviceRepository>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.RegisterType<DeviceBuilderFactory>().AsImplementedInterfaces().SingleInstance();
 
             DependencyService = containerBuilder.Build();
             Routing.RegisterRoute("devices/details", typeof(DeviceReadingPage));
+            Routing.RegisterRoute("devices/testempatica", typeof(DeviceConnectionTestPage));
         }
 
         protected override void OnStart()

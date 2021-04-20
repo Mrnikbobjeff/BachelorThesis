@@ -32,4 +32,11 @@ namespace InternalSensors.iOS
             return Task.CompletedTask;
         }
     }
+    public class InternaliOSDeviceBuilder : InternalDeviceBuilder
+    {
+        public override PhysicalDevice FromDevice(Device device)
+        {
+            return new InternalIOSDevice(device);
+        }
+    }
 }

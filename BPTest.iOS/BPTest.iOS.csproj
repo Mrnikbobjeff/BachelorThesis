@@ -124,6 +124,9 @@
     <InterfaceDefinition Include="Resources\LaunchScreen.storyboard" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="EmpaticaBindingLibrary">
+      <HintPath>..\EmpaticaE4Link.iOS\bin\Release\EmpaticaBindingLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -175,9 +178,20 @@
       <Project>{555BD2A8-9727-4DB1-883C-B0BC3489BEA3}</Project>
       <Name>BPTest</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Empatica.iOS\Empatica.iOS.csproj">
+      <Project>{433e0594-b000-449b-a834-601ff18220bb}</Project>
+      <Name>Empatica.iOS</Name>
+      <IsAppExtension>false</IsAppExtension>
+      <IsWatchApp>false</IsWatchApp>
+    </ProjectReference>
     <ProjectReference Include="..\InternalSensors.iOS\InternalSensors.iOS.csproj">
       <Project>{946948F6-D54A-4CF6-BF17-901A48F33827}</Project>
       <Name>InternalSensors.iOS</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <NativeReference Include="Native References/E4link.framework">
+      <Kind>Framework</Kind>
+    </NativeReference>
   </ItemGroup>
 </Project>

@@ -38,7 +38,7 @@ namespace Empathica.Android
         {
             if (allowed)
             {
-                this.device.OnDeviceFound(device);
+                this.device.OnDeviceFound(new DiscoveredAndroidEmpatica(device));
             }
         }
 
@@ -57,7 +57,7 @@ namespace Empathica.Android
             logger.Error("Bluetooth is off!");
         }
 
-        public void DidUpdateOnWristStatus([IntDef(Type = "Com.Empatica.Empalink.Config.IEmpaSensorStatus", Fields = new[] { "NotOnWrist", "OnWrist", "Dead" })] int status)
+        public virtual void DidUpdateOnWristStatus([IntDef(Type = "Com.Empatica.Empalink.Config.IEmpaSensorStatus", Fields = new[] { "NotOnWrist", "OnWrist", "Dead" })] int status)
         {
             logger.Debug($"On-Wrist status is now {status}");
         }
@@ -103,9 +103,9 @@ namespace Empathica.Android
 
         public void Connect(IEmpaticaDevice device)
         {
-            if (deviceStatus.Ordinal() == EmpaStatus.Connected.Ordinal() ||
-                deviceStatus.Ordinal() == EmpaStatus.Connecting.Ordinal() ||
-                deviceStatus.Ordinal() == EmpaStatus.Disconnecting.Ordinal())
+            if (deviceStatus?.Ordinal() == EmpaStatus.Connected.Ordinal() ||
+                deviceStatus?.Ordinal() == EmpaStatus.Connecting.Ordinal() ||
+                deviceStatus?.Ordinal() == EmpaStatus.Disconnecting.Ordinal())
             {
                 return;
             }

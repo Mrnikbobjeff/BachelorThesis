@@ -5619,6 +5619,7 @@ namespace BPTest.Droid
 			global::InternalSensors.Android.Resource.String.abc_shareactionprovider_share_with_application = global::BPTest.Droid.Resource.String.abc_shareactionprovider_share_with_application;
 			global::InternalSensors.Android.Resource.String.abc_toolbar_collapse_description = global::BPTest.Droid.Resource.String.abc_toolbar_collapse_description;
 			global::InternalSensors.Android.Resource.String.appbar_scrolling_view_behavior = global::BPTest.Droid.Resource.String.appbar_scrolling_view_behavior;
+			global::InternalSensors.Android.Resource.String.app_name = global::BPTest.Droid.Resource.String.app_name;
 			global::InternalSensors.Android.Resource.String.bottom_sheet_behavior = global::BPTest.Droid.Resource.String.bottom_sheet_behavior;
 			global::InternalSensors.Android.Resource.String.character_counter_content_description = global::BPTest.Droid.Resource.String.character_counter_content_description;
 			global::InternalSensors.Android.Resource.String.character_counter_overflowed_content_description = global::BPTest.Droid.Resource.String.character_counter_overflowed_content_description;
@@ -5651,6 +5652,7 @@ namespace BPTest.Droid
 			global::InternalSensors.Android.Resource.String.fallback_menu_item_copy_link = global::BPTest.Droid.Resource.String.fallback_menu_item_copy_link;
 			global::InternalSensors.Android.Resource.String.fallback_menu_item_open_in_browser = global::BPTest.Droid.Resource.String.fallback_menu_item_open_in_browser;
 			global::InternalSensors.Android.Resource.String.fallback_menu_item_share_link = global::BPTest.Droid.Resource.String.fallback_menu_item_share_link;
+			global::InternalSensors.Android.Resource.String.hello = global::BPTest.Droid.Resource.String.hello;
 			global::InternalSensors.Android.Resource.String.hide_bottom_view_on_scroll_behavior = global::BPTest.Droid.Resource.String.hide_bottom_view_on_scroll_behavior;
 			global::InternalSensors.Android.Resource.String.icon_content_description = global::BPTest.Droid.Resource.String.icon_content_description;
 			global::InternalSensors.Android.Resource.String.item_view_role_description = global::BPTest.Droid.Resource.String.item_view_role_description;

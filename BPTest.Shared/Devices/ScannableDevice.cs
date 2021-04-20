@@ -2,7 +2,10 @@
 {
     public abstract class ScannableDevice : PhysicalDevice
     {
-        public abstract void OnCnnectionStatusChanged(DeviceStatus status);
+        public virtual void OnCnnectionStatusChanged(DeviceStatus status)
+        {
+            Status = status;
+        }
 
         protected ScannableDevice(Device device) : base(device)
         {

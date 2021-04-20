@@ -43,6 +43,7 @@ namespace BPTest.ViewModels
 
         public async Task TestUnpairedDevices()
         {
+            await Shell.Current.GoToAsync("devices/testempatica");
         }
     }
 }

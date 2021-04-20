@@ -1,10 +1,13 @@
 ﻿using System;
+using Android.Runtime;
 using BPTest.Shared.Models;
+using Com.Empatica.Empalink;
+using Com.Empatica.Empalink.Config;
 using Empatica.Delegates;
 
 namespace Empathica.Android
 {
-    public class EmpaticaAndroidDataDelegate : Java.Lang.Object, IEmpaDataDelegate
+    public class EmpaticaAndroidDataDelegate : Java.Lang.Object, IEmpaDataDelegate, IEmpaStatusDelegate
     {
         private readonly Action<SensorData> processData;
 
@@ -43,12 +46,43 @@ namespace Empathica.Android
 
         public void DidReceiveTag(double timestamp)
         {
-            throw new NotImplementedException();
         }
 
         public void DidReceiveTemperature(float t, double timestamp)
         {
             processData(CreateNew(SensorDataType.TEMPERATURE_LOCAL, t));
+        }
+
+        public void BluetoothStateChanged()
+        {
+        }
+
+        public void DidDiscoverDevice(EmpaticaDevice device, string deviceLabel, int rssi, bool allowed)
+        {
+        }
+
+        public void DidEstablishConnection()
+        {
+        }
+
+        public void DidFailedScanning(int errorCode)
+        {
+        }
+
+        public void DidRequestEnableBluetooth()
+        {
+        }
+
+        public void DidUpdateSensorStatus([IntDef(Type = "Com.Empatica.Empalink.Config.IEmpaSensorStatus", Fields = new[] { "NotOnWrist", "OnWrist", "Dead" })] int status, EmpaSensorType type)
+        {
+        }
+
+        public void DidUpdateStatus(EmpaStatus status)
+        {
+        }
+
+        public void DidUpdateOnWristStatus([IntDef(Type = "Com.Empatica.Empalink.Config.IEmpaSensorStatus", Fields = new[] { "NotOnWrist", "OnWrist", "Dead" })] int status)
+        {
         }
     }
 }

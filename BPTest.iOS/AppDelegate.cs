@@ -1,16 +1,14 @@
-﻿
-using Autofac;
+﻿using Autofac;
 using BPTest.Shared.Constants;
 using BPTest.Shared.Devices;
+using Empatica.iOS;
+using EmpaticaBindingLibrary;
 using Foundation;
 using InternalSensors.iOS;
 using UIKit;
 
 namespace BPTest.iOS
 {
-    // The UIApplicationDelegate for the application. This class is responsible for launching the 
-    // User Interface of the application, as well as listening (and optionally responding) to 
-    // application events from iOS.
     [Register("AppDelegate")]
     public partial class AppDelegate : global::Xamarin.Forms.Platform.iOS.FormsApplicationDelegate
     {
@@ -26,19 +24,22 @@ namespace BPTest.iOS
             global::Xamarin.Forms.Forms.SetFlags("CollectionView_Experimental");
             global::Xamarin.Forms.Forms.Init();
             var containerBuilder = new ContainerBuilder();
-            containerBuilder.RegisterType<InternalIOSDevice>().Named<IDeviceBuilder>(PlatformSpecificDeviceBuilderServiceKeys.InternalDevice);
-            LoadApplication(new App());
+            containerBuilder.RegisterType<InternaliOSDeviceBuilder>().Named<IDeviceBuilder>(PlatformSpecificDeviceBuilderServiceKeys.InternalDevice);
+            containerBuilder.RegisterType<EmpaticaiOSDeviceBuilder>().Named<IDeviceBuilder>(PlatformSpecificDeviceBuilderServiceKeys.Empatica);
+            LoadApplication(new App(containerBuilder));
 
             return base.FinishedLaunching(app, options);
         }
 
         public override void DidEnterBackground(UIApplication uiApplication)
         {
+            EmpaticaAPI.PrepareForBackground();
             base.DidEnterBackground(uiApplication);
         }
 
         public override void OnActivated(UIApplication uiApplication)
         {
+            EmpaticaAPI.PrepareForResume();
             base.OnActivated(uiApplication);
         }
     }

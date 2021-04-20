@@ -5,6 +5,7 @@ using BPTest.Shared.Repositories;
 using Realms;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
@@ -27,19 +28,11 @@ namespace Empathica.Shared
 
         public override ImageSource Icon => throw new NotImplementedException();
 
-        public void AddSensorData(SensorData x)
-        {
-            using (var realm = Realm.GetInstance(SensorhubRealmConfiguration.Configuration))
-            {
-                x.DeviceId = device.Id;
-                realm.Add(x);
-            }
-        }
 
-        public override Task Connect()
+        public override async Task Connect()
         {
+            await Task.Delay(5000);
             connectionHandler.StartScanning(this);
-            return Task.CompletedTask;
         }
 
         public override Task Disconnect()
@@ -50,17 +43,22 @@ namespace Empathica.Shared
 
         public void OnDeviceFound(IEmpaticaDevice empaticaDevice)
         {
-            if(device.PairedDeviceAdress == empaticaDevice.Adress)
+            if(device.PairedDeviceAdress == null)
+            {
+                device.PairedDeviceAdress = empaticaDevice.Adress;
+                using (var realm = Realm.GetInstance(SensorhubRealmConfiguration.Configuration))
+                {
+                    var trackedDevice = realm.All<BPTest.Shared.Devices.Device>().First(x => x.Id == device.Id);
+                    realm.Write(() => trackedDevice.PairedDeviceAdress = empaticaDevice.Adress);
+                }
+            }
+
+            if (device.PairedDeviceAdress == empaticaDevice.Adress)
             {
                 empatica = empaticaDevice;
                 connectionHandler.StopScanning();
                 connectionHandler.Connect(empaticaDevice);
             }
-        }
-
-        public override void OnCnnectionStatusChanged(DeviceStatus status)
-        {
-            throw new NotImplementedException();
         }
     }
 

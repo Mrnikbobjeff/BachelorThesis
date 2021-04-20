@@ -12,11 +12,6 @@ namespace Empathica.Android
         {
             connectionHandler = new EmpaticaAndroidStatusDelegate(this);
         }
-
-        internal void OnDeviceFound(EmpaticaDevice device)
-        {
-            throw new NotImplementedException();
-        }
     }
     public class EmpaticaAndroidDeviceBuilder : EmpaticaDeviceBuilder
     {

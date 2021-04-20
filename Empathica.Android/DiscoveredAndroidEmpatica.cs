@@ -4,9 +4,14 @@ using Empathica.Shared;
 
 namespace Empathica.Android
 {
-    class DiscoveredAndroidEmpatica : IEmpaticaDevice
+    public class DiscoveredAndroidEmpatica : IEmpaticaDevice
     {
-        public string Adress { get; set; }
-        public EmpaticaDevice ActualDevice { get; set; }
+        public DiscoveredAndroidEmpatica(EmpaticaDevice device)
+        {
+            ActualDevice = device;
+        }
+        public string Adress { get => ActualDevice.Device.Address; }
+        public EmpaticaDevice ActualDevice { get; }
+        public string Name { get => ActualDevice.AdvertisingName; }
     }
 }

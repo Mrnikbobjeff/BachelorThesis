@@ -26,11 +26,14 @@ namespace BPTest.Repositories
         {
             using (var realm = await Realm.GetInstanceAsync(Configuration))
             {
-                realm.RemoveAll<Device>();
+                realm.Write(() =>
+                {
+                    realm.RemoveAll<Device>();
 
-                var newDevices = activeDevices
-                    .Select(x => new Device { Module = x.DeviceType.Module, Name = x.Name, PairedDeviceDescription = x.DeviceType.Name, Id = x.Id }).ToArray();
-                realm.Write(() => realm.Add(newDevices));
+                    var newDevices = activeDevices
+                        .Select(x => new Device { Module = x.DeviceType.Module, Name = x.Name, PairedDeviceDescription = x.DeviceType.Name, Id = x.Id }).ToArray();
+                    realm.Add(newDevices);
+                });
             }
         }
     }

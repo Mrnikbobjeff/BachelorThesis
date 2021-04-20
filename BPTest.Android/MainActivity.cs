@@ -7,6 +7,9 @@ using BPTest.Shared.Devices;
 using InternalSensors.Android;
 using BPTest.Shared.Constants;
 using Empathica.Android;
+using Android;
+using System;
+using AndroidX.Core.App;
 
 namespace BPTest.Droid
 {
@@ -27,6 +30,10 @@ namespace BPTest.Droid
             containerBuilder.RegisterType<AndroidDeviceBuilder>().Named<IDeviceBuilder>(PlatformSpecificDeviceBuilderServiceKeys.InternalDevice);
             containerBuilder.RegisterType<EmpaticaAndroidDeviceBuilder>().Named<IDeviceBuilder>(PlatformSpecificDeviceBuilderServiceKeys.Empatica);
             LoadApplication(new App(containerBuilder));
+
+            ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.Bluetooth }, 22);
+            ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BluetoothAdmin }, 23);
+            ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BluetoothPrivileged }, 24);
         }
 
         public override void OnBackPressed()

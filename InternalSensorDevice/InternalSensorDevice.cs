@@ -37,10 +37,15 @@ namespace InternalSensors
         public async Task StartCollection()
         {
             Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
-            Magnetometer.ReadingChanged += Magnetometer_ReadingChanged;
-            Gyroscope.ReadingChanged += Gyroscope_ReadingChanged;
-            Barometer.ReadingChanged += Barometer_ReadingChanged;
-            OrientationSensor.ReadingChanged += OrientationSensor_ReadingChanged;
+            Accelerometer.Start(SensorSpeed.Default);
+            //Magnetometer.ReadingChanged += Magnetometer_ReadingChanged;
+            //Magnetometer.Start(SensorSpeed.Default);
+            //Gyroscope.ReadingChanged += Gyroscope_ReadingChanged;
+            //Gyroscope.Start(SensorSpeed.Default);
+            //Barometer.ReadingChanged += Barometer_ReadingChanged;
+            //Barometer.Start(SensorSpeed.Default);
+            //OrientationSensor.ReadingChanged += OrientationSensor_ReadingChanged;
+            //OrientationSensor.Start(SensorSpeed.Default);
             await StartGpsListener();
             await StartLuxmeterListener();
         }
@@ -51,15 +56,7 @@ namespace InternalSensors
         protected virtual Task StartLuxmeterListener() => Task.CompletedTask;
         protected virtual Task StopLuxmeterListener() => Task.CompletedTask;
 
-        void AddSensorData(SensorData s)
-        {
-            s.DeviceId = device.Id;
-            using(var realm = Realm.GetInstance(SensorhubRealmConfiguration.Configuration))
-            {
-                realm.Add(s);
-                OnSensorDataReceived(s);
-            }
-        }
+
 
         protected void GpsSensor_ReadingChanged(GpsLocation location)
         {
@@ -102,11 +99,16 @@ namespace InternalSensors
         public async Task StopCollection()
         {
             Accelerometer.ReadingChanged -= Accelerometer_ReadingChanged;
-            Magnetometer.ReadingChanged -= Magnetometer_ReadingChanged;
-            Gyroscope.ReadingChanged -= Gyroscope_ReadingChanged;
-            Barometer.ReadingChanged -= Barometer_ReadingChanged;
-            OrientationSensor.ReadingChanged -= OrientationSensor_ReadingChanged;
+            //Magnetometer.ReadingChanged -= Magnetometer_ReadingChanged;
+            //Gyroscope.ReadingChanged -= Gyroscope_ReadingChanged;
+            //Barometer.ReadingChanged -= Barometer_ReadingChanged;
+            //OrientationSensor.ReadingChanged -= OrientationSensor_ReadingChanged;
 
+            //OrientationSensor.Stop();
+            Accelerometer.Stop();
+            //Magnetometer.Stop();
+            //Barometer.Stop();
+            //Gyroscope.Stop();
             await StopGpsListener();
             await StopLuxmeterListener();
         }

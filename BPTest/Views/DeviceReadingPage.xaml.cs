@@ -29,23 +29,15 @@ namespace BPTest.Views
         void UpdatePageWithDeviceCharts(int deviceId)
         {
             ViewModel.LoadDevice(deviceId);
-            foreach (var item in ViewModel.DataTypes)
+            foreach(var type in ViewModel.DataTypes)
             {
-                var view = new ChartView();
-                var stackLayout = new StackLayout();
-                view.HorizontalOptions = LayoutOptions.CenterAndExpand;
-                view.VerticalOptions = LayoutOptions.CenterAndExpand;
-                view.BackgroundColor = Color.Blue;
-                view.WidthRequest = 200;
-                view.HeightRequest = 200;
-                view.Chart = new LineChart();
-                stackLayout.Children.Add(view);
-                viewDictionary.Add(item, view);
-                Content = stackLayout;
+                ViewModel.Charts.Add(new SensorChart { Chart = new LineChart { Entries = new ChartEntry[0], MinValue = 0 }, DataType = type, SensorDataType = type.ToString() }); ;
+                viewDictionary.Add(type, ViewModel.Charts.First(x => x.DataType == type).Chart);
             }
         }
+
         DeviceReadingViewModel ViewModel = null;
-        readonly Dictionary<SensorDataType, ChartView> viewDictionary = new Dictionary<SensorDataType, ChartView>();
+        readonly Dictionary<SensorDataType, LineChart> viewDictionary = new Dictionary<SensorDataType, LineChart>();
         public DeviceReadingPage()
         {
             InitializeComponent();
@@ -53,11 +45,11 @@ namespace BPTest.Views
             ViewModel.DeciveReadingUpdated += ViewModel_DeciveReadingUpdated;
         }
 
-        private void ViewModel_DeciveReadingUpdated(object sender, SensorData e)
+        private void ViewModel_DeciveReadingUpdated(object sender, SensorDataEventArgs e)
         {
-            if (viewDictionary.TryGetValue((SensorDataType)e.Type, out var value))
+            if (viewDictionary.TryGetValue((SensorDataType)e.Value.Type, out var value))
             {
-                value.Chart.Entries = value.Chart.Entries.Concat(new ChartEntry[] { new ChartEntry((float)e.Value) });
+                value.Entries = value.Entries.Concat(new ChartEntry[] { new ChartEntry((float)e.Value.Value) });
             }
             else
             {

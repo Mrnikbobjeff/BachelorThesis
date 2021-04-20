@@ -1,4 +1,6 @@
 ﻿using BPTest.Shared.Models;
+using BPTest.Shared.Repositories;
+using Realms;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,10 +18,38 @@ namespace BPTest.Shared.Devices
             this.device = device;
         }
 
-        public DeviceStatus Status { get; }
+        protected void InvokeConnectionStateChanged() => ConnectionStatusChanged?.Invoke(this, null);
+
+        public DeviceStatus Status { get; protected set; }
         public abstract DeviceType DeviceType { get; }
         public abstract string Name { get; }
         public abstract ImageSource Icon { get; }
+
+
+        readonly List<SensorData> buffer = new List<SensorData>(1000);
+        readonly object synclock = new object();
+
+        public void AddSensorData(SensorData s)
+        {
+            s.DeviceId = device.Id;
+            OnSensorDataReceived(s);
+            if (buffer.Count > 1000)
+            {
+                lock (synclock)
+                {
+                    if (buffer.Count > 1000)
+                    {
+                        using (var realm = Realm.GetInstance(SensorhubRealmConfiguration.Configuration))
+                        {
+                            realm.Write(() => realm.Add(buffer));
+                        }
+                        buffer.Clear();
+                    }
+                }
+            }
+            buffer.Add(s);
+        }
+
         public virtual Task Reconnect()
         {
             if (Status == DeviceStatus.CONNECTED || Status == DeviceStatus.CONNECTING)
@@ -30,7 +60,8 @@ namespace BPTest.Shared.Devices
         }
         public abstract Task Disconnect();
         public abstract Task Connect();
-        protected void OnSensorDataReceived(SensorData s) => SensorDataReceived.Invoke(this, new SensorDataEventArgs { Value = s });
+        protected void OnSensorDataReceived(SensorData s) => SensorDataReceived?.Invoke(this, new SensorDataEventArgs { Value = s });
         public event EventHandler<SensorDataEventArgs> SensorDataReceived;
+        public event EventHandler<EventArgs> ConnectionStatusChanged;
     }
 }

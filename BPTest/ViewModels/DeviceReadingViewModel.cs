@@ -1,10 +1,13 @@
-﻿using BPTest.Repositories;
+﻿using BPTest.Models;
+using BPTest.Repositories;
 using BPTest.Shared.Devices;
 using BPTest.Shared.Models;
 using BPTest.Shared.Repositories;
 using BPTest.Utils;
+using Microcharts;
 using Realms;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +19,9 @@ namespace BPTest.ViewModels
         Realm realm = Realm.GetInstance(SensorhubRealmConfiguration.Configuration);
         private readonly IDeviceBuilderFactory deviceBuilderFactory;
         PhysicalDevice device;
+        private ObservableCollection<SensorChart> charts = new ObservableCollection<SensorChart>();
+
+        public ObservableCollection<SensorChart> Charts { get => charts; set => SetProperty(ref charts, value); }
 
         public DeviceReadingViewModel(IDeviceBuilderFactory deviceBuilderFactory)
         {
@@ -27,26 +33,27 @@ namespace BPTest.ViewModels
             var now = DateTimeOffset.Now;
             var allOfType = realm.All<SensorData>().Where(x => x.DeviceId == id && x.Time > now);
             DataTypes.Clear();
-            var savedDevice = realm.All<Device>().Where(x => x.Id == id).Single();
+            var savedDevice = realm.All<Device>().Where(x => x.Id == id).Single().Clone();
             var deviceBuilder = deviceBuilderFactory.ForDeviceModule(savedDevice.Module);
             device = deviceBuilder.FromDevice(savedDevice);
             DataTypes.AddRange(deviceBuilder.DefaultSelectedSensors.Keys);
-            allOfType.AsRealmCollection().CollectionChanged += DeiveReadingPageViewModel_CollectionChanged;
-            device.Connect().GetAwaiter().GetResult() ;
+            device.Connect();
+
+            device.SensorDataReceived += Device_SensorDataReceived;
         }
 
-        private void DeiveReadingPageViewModel_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void Device_SensorDataReceived(object sender, SensorDataEventArgs e)
         {
-            foreach (var item in e.NewItems)
-                DeciveReadingUpdated.Invoke(this, item as SensorData);
+            this.DeciveReadingUpdated?.Invoke(sender, e);
         }
 
         public ObservableCollection<SensorDataType> DataTypes { get; } = new ObservableCollection<SensorDataType>();
 
-        public event EventHandler<SensorData> DeciveReadingUpdated;
+        public event EventHandler<SensorDataEventArgs> DeciveReadingUpdated;
 
         public override Task OnDisappearing()
         {
+            device.SensorDataReceived -= Device_SensorDataReceived;
             return device.Disconnect();
         }
     }
